@@ -18,6 +18,7 @@ Library
   hs-source-dirs:   src
   default-language: Haskell2010
   build-depends:    base ==4.7.*
+  ghc-options:      -Wall
   exposed-modules:  Color,
                     Material,
                     Primitive,
@@ -30,11 +31,13 @@ Executable halray
   build-depends:      base ==4.7.*,
                       halray
 
--- test-suite tests
---   type:                 exitcode-stdio-1.0
---   default-language:     Haskell2010
---   default-extensions:   OverloadedStrings
---   hs-source-dirs:       tests, .
---   main-is:              HSpecTests.hs
---   ghc-options:          -Wall
---   build-depends:        base
+test-suite tests
+  type:                 exitcode-stdio-1.0
+  default-language:     Haskell2010
+  default-extensions:   OverloadedStrings
+  hs-source-dirs:       tests
+  main-is:              Vector_test.hs
+  ghc-options:          -Wall
+  build-depends:        base,
+                        QuickCheck,
+                        halray
