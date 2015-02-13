@@ -36,5 +36,4 @@ Test-suite tests
   main-is:            Halray_test.hs
   build-depends:      base,
                       halray,
-                      haskell-src ==1.0.1.6,
                       HTF >= 0.10
