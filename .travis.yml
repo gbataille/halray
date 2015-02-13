@@ -1,4 +1,6 @@
 language: haskell
 ghc: 7.8
 install:
+  # https://github.com/JanAhrens/xing-api-haskell/commit/a3863ca97127918862e0477823c251217dc5aa0b
+  # travis seems to have an incompatible version of happy installed
   - happy --version; cabal install happy; happy --version; cabal install --only-dependencies --enable-tests
