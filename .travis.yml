@@ -1,2 +1,4 @@
 language: haskell
 ghc: 7.8
+install:
+  - happy --version; cabal install happy; happy --version; cabal install --only-dependencies --enable-tests
