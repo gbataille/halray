@@ -12,7 +12,7 @@ maintainer:          gbataille.dev@gmail.com
 -- copyright:
 category:            Graphics
 build-type:          Simple
-cabal-version:       >=1.8
+cabal-version:       >=1.18
 
 executable halray
   main-is: Halray.hs
