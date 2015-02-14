@@ -78,9 +78,9 @@ raySphereIntersect (origin, direction) (radius, center) =
                                    then Just t1
                                    else Nothing
                       where
-                            op = vec_sub center origin
-                            b_o_2 = vec_dot op direction
-                            det_o_4 = (b_o_2 * b_o_2) - (vec_dot op op) + (radius * radius)
+                            op = center - origin
+                            b_o_2 = dot op direction
+                            det_o_4 = (b_o_2 * b_o_2) - (dot op op) + (radius * radius)
                             t0 = b_o_2 - sqrt det_o_4
                             t1 = b_o_2 + sqrt det_o_4
 

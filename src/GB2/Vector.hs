@@ -1,44 +1,41 @@
 module GB2.Vector
 (
-    vec_add,
-    vec_sub,
-    vec_mul,
-    vec_scalar_mul,
-    vec_scalar_mul2,
-    vec_length,
-    vec_normalized,
-    vec_dot,
-    vec_cross,
-    Vector
+    Vector(..),
+    norm,
+    normalize,
+    dot,
+    cross,
+    vmul,
+    vmul2
 ) where
 
-type Vector = (Float, Float, Float)
+data Vector = Vector Float Float Float -- x, y, z
+              deriving (Show, Eq)
 
-vec_add :: Vector -> Vector -> Vector
-vec_add (a, b, c) (d, e, f) = (a + d, b + e, c + f)
+instance Num (Vector) where
+   Vector x y z + Vector x' y' z' = Vector (x + x') (y + y') (z + z')
+   Vector x y z - Vector x' y' z' = Vector (x - x') (y - y') (z - z')
+   Vector x y z * Vector x' y' z' = Vector (x * x') (y * y') (z * z')
+   abs (Vector x y z) = Vector (abs x) (abs y) (abs z)
+   signum (Vector x y z) = Vector (signum x) (signum y) (signum z)
+   fromInteger _ = error "This stuff does not exists"
 
-vec_sub :: Vector -> Vector -> Vector
-vec_sub (a, b, c) (d, e, f) = (a - d, b - e, c - f)
+norm :: Vector -> Float
+norm (Vector x y z) = sqrt (x * x + y * y + z * z)
 
-vec_mul :: Vector -> Vector -> Vector
-vec_mul (a, b, c) (d, e, f) = (a * d, b * e, c * f)
+normalize :: Vector -> Vector
+normalize (Vector x y z) = Vector (x / n) (y / n) (z / n) where n = norm (Vector x y z)
 
-vec_scalar_mul :: Vector -> Float -> Vector
-vec_scalar_mul (a, b, c) d = (a * d, b * d, c * d)
+dot :: Vector -> Vector -> Float
+dot (Vector x y z) (Vector x' y' z') = x * x' + y * y' + z * z'
 
-vec_scalar_mul2 :: Float -> Vector -> Vector
-vec_scalar_mul2 d (a, b, c) = (a * d, b * d, c * d)
+cross :: Vector -> Vector-> Vector
+cross (Vector x y z) (Vector x' y' z') = Vector (y * z' - z * y') (z * x' - x * z') (x * y' - y * x')
 
-vec_length :: Vector -> Float
-vec_length (a, b, c) = sqrt (a * a + b * b + c * c)
+-- HOWTO: make vmul a cleaner operator, such as *
+-- HOWTO make vmul a commutative operator without creating vmul2 ?
+vmul :: Vector -> Float -> Vector
+vmul (Vector x y z) s = Vector (x * s) (y * s) (z * s)
 
-vec_normalized :: Vector -> Vector
-vec_normalized (a, b, c) = (a / n, b / n, c / n) where n = vec_length (a, b, c)
-
-vec_dot :: Vector -> Vector -> Float
-vec_dot (a, b, c) (d, e, f) = a * d + b * e + c * f
-
-vec_cross :: Vector -> Vector -> Vector
-vec_cross (a, b, c) (d, e, f) = (b * f - c * e, c * d - a * f, a * e - b * d)
-
--- TODO: clean code, introduce real operators, make tests
+vmul2 :: Float -> Vector -> Vector
+vmul2 = flip vmul

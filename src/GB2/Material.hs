@@ -1,15 +1,11 @@
 module GB2.Material
 (
-    Material, -- Generic material
-    Diffuse -- Diffuse material
+    Material(..) -- Generic material
 )
 where
 
-import GB2.Color
-
 -- Materials
-type Diffuse = Color
-type Material = Diffuse
+data Material = Diffuse Float Float Float | Mirror Float Float Float
 
 -- Later, all the different material while inherite from Material and
 -- implements different sampling/evaluating methods using something
