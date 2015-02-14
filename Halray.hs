@@ -80,10 +80,14 @@ render width height spp = [
 
 -- | 'main' runs the main program
 main :: IO ()
-main = writeFile filename (image2ppm (width, height, res))
-       where
-         width = 200
-         height = 200
-         spp = 1
-         filename = "test.ppm"
-         res = render width height spp
+main = do
+          args <- getArgs
+
+          let
+              width = read (head args) :: Integer
+              height = read (head $ tail args) :: Integer
+              spp = read (head . tail $ tail args) :: Integer
+              res = render width height spp
+              filename = "test.ppm"
+
+          writeFile filename $ image2ppm (width, height, res)
