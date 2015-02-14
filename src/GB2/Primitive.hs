@@ -1,4 +1,4 @@
-module Primitive
+module GB2.Primitive
 (
     raySphereIntersect,
     Primitive,
@@ -18,8 +18,8 @@ where
 -- accelerator, and Object may be something else than primitives (such as
 -- transform or aggregate of primitives)
 
-import Vector
-import Material
+import GB2.Vector
+import GB2.Material
 
 -- Rays
 type Ray = (Vector, Vector) -- Origin / Direction

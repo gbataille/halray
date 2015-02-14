@@ -1,10 +1,10 @@
 import System.Environment
 import Data.List
 
-import Vector
-import Primitive
-import Material
-import Color
+import GB2.Vector
+import GB2.Primitive
+import GB2.Material
+import GB2.Color
 
 -- Scene
 -- Vec (50, 70, 81.6) // LIGHT.

@@ -1,11 +1,11 @@
-module Material
+module GB2.Material
 (
     Material, -- Generic material
     Diffuse -- Diffuse material
 )
 where
 
-import Color
+import GB2.Color
 
 -- Materials
 type Diffuse = Color

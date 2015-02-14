@@ -1,4 +1,4 @@
-module Color
+module GB2.Color
 (
     Color, 
     Image,
