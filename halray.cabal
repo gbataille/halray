@@ -18,7 +18,7 @@ Library
   hs-source-dirs:     src
   default-language:   Haskell2010
   build-depends:      base >=4.7
-  ghc-options:        -Wall
+  ghc-options:        -Wall -O3
   exposed-modules:    GB2.Vector GB2.Color GB2.Primitive GB2.Material
 
 Executable halray
@@ -27,6 +27,7 @@ Executable halray
   -- other-modules:
   build-depends:      base >=4.7,
                       halray
+  ghc-options:        -Wall -O3
 
 Test-suite tests
   type:               exitcode-stdio-1.0
