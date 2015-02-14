@@ -53,7 +53,7 @@ fov = 40
 -- (x and y are in an unit cube of [-1, 2] ^ 2
 -- sample is not used yet, it is for super sampling of the pixel
 get_camera_ray :: Float -> Float -> Integer -> Ray -- (x, y, sample) -> Ray
-get_camera_ray x y sample = (p0, direction)
+get_camera_ray x y _ = (p0, direction)
   where
     (fx, fy) = (x, -y)
     -- p0, on near is in [0, 100] ^ 2 at z = 140
