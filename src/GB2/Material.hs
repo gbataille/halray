@@ -1,8 +1,4 @@
-module GB2.Material
-(
-    Material(..) -- Generic material
-)
-where
+module GB2.Material where
 
 -- Materials
 data Material = Diffuse Float Float Float | Mirror Float Float Float

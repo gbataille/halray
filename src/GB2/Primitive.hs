@@ -1,14 +1,4 @@
-module GB2.Primitive
-(
-    raySphereIntersect,
-    Primitive,
-    Object,
-    Sphere,
-    Ray,
-    intersectScene,
-    Scene
-)
-where
+module GB2.Primitive where
 
 -- Later I'l like to have a Scene, which containes some
 -- Objects. Objects stores primitives (such as triangles and spheres)

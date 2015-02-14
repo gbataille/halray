@@ -1,13 +1,4 @@
-module GB2.Vector
-(
-    Vector(..),
-    norm,
-    normalize,
-    dot,
-    cross,
-    vmul,
-    vmul2
-) where
+module GB2.Vector where
 
 data Vector = Vector Float Float Float -- x, y, z
               deriving (Show, Eq)
