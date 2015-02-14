@@ -87,4 +87,3 @@ main = writeFile filename (image2ppm (width, height, res))
          spp = 1
          filename = "test.ppm"
          res = render width height spp
-
