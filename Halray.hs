@@ -33,7 +33,7 @@ radiance ray = case intersectScene makeDefaultScene ray of
 
 -- Camera bullshit, we will need to improve this
 near :: Float
-near = 1.0
+near = 140
 
 far :: Float
 far = 10000.0
@@ -57,7 +57,7 @@ get_camera_ray x y _ = (p0, direction)
   where
     (fx, fy) = (x, -y)
     -- p0, on near is in [0, 100] ^ 2 at z = 140
-    p0 = ((fx + 1.0) * 50.0, (fy + 1.0) * 50.0, 140)
+    p0 = ((fx + 1.0) * 50.0, (fy + 1.0) * 50.0, near)
     -- p1, on far is at [0, 100] ^ 2 scalled by fov and at z = -far
     -- yes, depth is inverted
     p1 = ((fx * fov + 1.0) * 50.0, (fy * fov + 1.0) * 50.0, -far)
