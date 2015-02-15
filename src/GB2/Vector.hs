@@ -3,6 +3,9 @@ module GB2.Vector where
 data Vector = Vector Float Float Float -- x, y, z
               deriving (Show, Eq)
 
+type Normal = Vector
+type Point = Vector
+
 instance Num (Vector) where
    Vector x y z + Vector x' y' z' = Vector (x + x') (y + y') (z + z')
    Vector x y z - Vector x' y' z' = Vector (x - x') (y - y') (z - z')
