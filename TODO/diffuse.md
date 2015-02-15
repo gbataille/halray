@@ -86,3 +86,11 @@ Note : observe that
 Note the change of variable ``dwo = sin(phi) dphi dtheta``. Amazing no?
 
 Enjoy!
+
+Part II : Shadows
+-----------------
+
+Ok, you shaded the surface at point P lit by Light source at position lightPos.
+
+Check if there is an object between P and lightPos to see if your surface is lit or is in the shadow.
+
