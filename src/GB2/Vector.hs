@@ -9,7 +9,8 @@ instance Num (Vector) where
    Vector x y z * Vector x' y' z' = Vector (x * x') (y * y') (z * z')
    abs (Vector x y z) = Vector (abs x) (abs y) (abs z)
    signum (Vector x y z) = Vector (signum x) (signum y) (signum z)
-   fromInteger _ = error "This stuff does not exists"
+   fromInteger _ = error "ERROR: fromInteger :: t -> Vector is called when it should not"
+   negate (Vector x y z) = Vector (-x) (-y) (-z)
 
 norm :: Vector -> Float
 norm (Vector x y z) = sqrt (x * x + y * y + z * z)
