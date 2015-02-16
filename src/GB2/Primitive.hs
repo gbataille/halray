@@ -18,46 +18,51 @@ type Ray = (Vector, Vector) -- Origin / Direction
 -- Sphere
 type Sphere = (Float, Vector) -- Radius, center
 
--- Compute the intersection between a ray and a sphere
--- The ray direction MUST be normalized
+{-|
+Computes the intersection between a ray and a sphere
+The ray direction MUST be normalized
 
--- The maths are trivials. the ray coordinate is
--- P = Origin + t * Direction
--- An element on the sphere is
--- || Center - P || == radius
--- (|| is the norm L2)
+The maths are trivials. the ray coordinate is
+P = Origin + t * Direction
+An element on the sphere is
+|| Center - P || == radius
+(|| is the norm L2)
 
--- Then,
--- || Center - Origin + t * Direction || == radius
--- || Center - Origin + t * Direction || ^ 2 == radius ^ 2
--- || Center - Origin || ^ 2 + t ^ 2 || Direction || ^ 2 + 2 * t * < Direction, Center - Origin > == radius ^ 2
--- (with <a, b> the dot product)
+Then,
+|| Center - Origin + t * Direction || == radius
+|| Center - Origin + t * Direction || ^ 2 == radius ^ 2
+|| Center - Origin || ^ 2 + t ^ 2 || Direction || ^ 2 + 2 * t * { Direction, Center - Origin } == radius ^ 2
+(with { a, b } the dot product)
 
--- Because Direction is normalized, we get || Direction || == 1
--- Hence
--- t ^ 2 + t * 2 <Direction, Center - Origin> + ||Center - Origin|| ^ 2 - radius ^ 2 == 0
+Because Direction is normalized, we get || Direction || == 1
+Hence
+t ^ 2 + t * 2 { Direction, Center - Origin } + ||Center - Origin|| ^ 2 - radius ^ 2 == 0
 
--- Second order equation, we get
--- a = 1
--- b = 2 <Direction, Center - Origin>
--- c = ||Origin|| ^ 2 - radius ^ 2
+Second order equation, we get
+a = 1
+b = 2 { Direction, Center - Origin }
+c = ||Origin|| ^ 2 - radius ^ 2
 
--- det = b ^ 2 - 4 (a * c)
---     = 4 <Direction, Center -Origin> ^ 2 - 4 (|| Center - Origin || ^ 2 - radius ^ 2)
---
--- We can simplify det by 4, just for the sake of it ;)
--- det_o_4 = <Direction, Center -Origin> ^ 2 - || Center - Origin || ^ 2 + radius ^ 2
+det = b ^ 2 - 4 (a * c)
+= 4 { Direction, Center -Origin } ^ 2 - 4 (|| Center - Origin || ^ 2 - radius ^ 2)
 
--- if det < 0 (or det_o_4 < 0) -> No solution
--- if det > 0, two solutions :
--- t0 = (-b - sqrt(det)) / (2 * a)
---
--- (Observe that there is a 2 in b, which cancels with the 2 in (2a) and the 4 of det cancels too, so
--- t0 = b_o_2 - sqrt(det_o_4)
+We can simplify det by 4, just for the sake of it ;)
+det_o_4 = { Direction, Center -Origin } ^ 2 - || Center - Origin || ^ 2 + radius ^ 2
 
--- With a similar method, we get
--- t1 = b_o_2 + sqrt(det_o_4)
-raySphereIntersect :: Ray -> Sphere -> Maybe Float
+if det < 0 (or det_o_4 < 0) -> No solution
+if det > 0, two solutions :
+t0 = (-b - sqrt(det)) / (2 * a)
+
+(Observe that there is a 2 in b, which cancels with the 2 in (2a) and the 4 of det cancels too, so
+t0 = b_o_2 - sqrt(det_o_4)
+
+With a similar method, we get
+t1 = b_o_2 + sqrt(det_o_4)
+
+-}
+raySphereIntersect :: Ray       -- ^ a Ray with a normalized direction
+                -> Sphere       -- ^ the Sphere we are trying to intersect the ray with
+                -> Maybe Float  -- ^ the distance between the ray origin and the intersection point
 raySphereIntersect (origin, direction) (radius, center) =
                       if det_o_4 < 0
                          then Nothing
