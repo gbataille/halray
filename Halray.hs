@@ -23,16 +23,49 @@ makeDefaultScene = [
     ((16.5, Vector 73 16.5 78), Diffuse 1 1 1)	-- Glass
   ]
 
+makeDefaultLight :: Light
+makeDefaultLight = Light (Vector 50 70 81.6) (Vector 20000 20000 20000)
+
 materialToColor :: Material -> Color
 materialToColor (Diffuse a b c) = Vector a b c
 materialToColor (Mirror a b c) = Vector a b c
+
+sameSide :: Ray -- ^ incoming ray
+  -> Ray        -- ^ outgoing ray
+  -> Vector     -- ^ surface normal
+  -> Bool
+sameSide (_, dir1) (_, dir2) normal = (-dir1 `dot` normal) * (dir2 `dot` normal) > 0
+
+primitiveNormal :: Primitive    -- ^ The surface under study
+  -> Point                      -- ^ The point on which the normal is to be computed
+  -> Normal
+primitiveNormal (radius, center) point = normalize (point - center)
+
+intersectPoint :: It -> Ray -> Point
+intersectPoint (t, _) (origin, direction) = origin + (t `vmul2` direction)
+
+intersectToEnergy :: It -> Light -> Ray -> Maybe Color
+intersectToEnergy (_, (_, Mirror r g b)) light _ = Just (Vector r g b)
+intersectToEnergy intersect@(_, (primitive, Diffuse r g b)) light cameraRay@(originRay, directionRay) = 
+    case sameSide cameraRay lightRay normalAtIntersect of
+      True -> Just ((Vector r g b) `vmul` (1/pi) * (getColor light) `vmul` (1.0/(d**2) ) `vmul` (abs (dot normalAtIntersect (normalize dirRay))))
+      False -> Nothing
+    where intersectP = (intersectPoint intersect cameraRay)
+          dirRay = (getPosition light) - intersectP
+          lightRay = (getPosition light, dirRay)
+          normalAtIntersect = (primitiveNormal primitive intersectP)
+          d = norm (intersectP - (getPosition light))
+
+readColor :: Maybe Color -> Color
+readColor Nothing = Vector 0 0 0
+readColor (Just c) = c
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
 radiance :: Ray -> Color
 radiance ray = case intersectScene makeDefaultScene ray of
                    Nothing -> Vector 0 0 0
-                   Just (_, (_, m)) -> materialToColor m
+                   Just intersect -> readColor $ intersectToEnergy intersect makeDefaultLight ray
 
 -- Camera bullshit, we will need to improve this
 near :: Float

@@ -10,13 +10,14 @@ module GB2.Primitive where
 
 import GB2.Vector
 import GB2.Material
+import GB2.Color
 
 -- Rays
 type Ray = (Vector, Vector) -- Origin / Direction
 -- TODO: check how the hell I can be explicit and object field name
 
 -- Sphere
-type Sphere = (Float, Vector) -- Radius, center
+type Sphere = (Float, Point) -- Radius, center
 
 {-|
 Computes the intersection between a ray and a sphere
@@ -79,6 +80,7 @@ raySphereIntersect (origin, direction) (radius, center) =
                             t0 = b_o_2 - sqrt det_o_4
                             t1 = b_o_2 + sqrt det_o_4
 
+
 -- Primitives
 type Primitive = Sphere
 -- TODO: latter, set triangles, aabb, ...
@@ -89,7 +91,8 @@ type Object = (Primitive, Material)
 
 -- Scene
 type Scene = [Object]
-type It = (Float, Object) -- Float is the t of intersection
+type It = (Float, Object) -- Float is the t of intersection (distance between ray origin and light)
+data Light = Light { getPosition :: Point, getColor :: Color }
 
 -- Find the closest intersection
 -- TODO: understand how I can make something cleaner than that !
