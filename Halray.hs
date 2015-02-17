@@ -26,10 +26,6 @@ makeDefaultScene = [
 makeDefaultLight :: Light
 makeDefaultLight = Light (Vector 50 70 81.6) (Vector 20000 20000 20000)
 
-materialToColor :: Material -> Color
-materialToColor (Diffuse a b c) = Vector a b c
-materialToColor (Mirror a b c) = Vector a b c
-
 sameSide :: Ray -- ^ incoming ray
   -> Ray        -- ^ outgoing ray
   -> Vector     -- ^ surface normal
