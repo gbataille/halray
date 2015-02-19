@@ -6,7 +6,7 @@ module GB2.Color
 )
 where
 
-import GB2.Vector
+import GB2.Geometry
 
 -- Define what is an image and what is a color
 

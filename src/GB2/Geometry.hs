@@ -1,4 +1,4 @@
-module GB2.Vector where
+module GB2.Geometry where
 
 data Vector = Vector Float Float Float -- x, y, z
               deriving (Show, Eq)

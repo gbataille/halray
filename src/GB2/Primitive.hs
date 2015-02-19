@@ -8,7 +8,7 @@ module GB2.Primitive where
 -- accelerator, and Object may be something else than primitives (such as
 -- transform or aggregate of primitives)
 
-import GB2.Vector
+import GB2.Geometry
 import GB2.Material
 import GB2.Color
 

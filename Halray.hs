@@ -1,6 +1,6 @@
 import System.Environment
 
-import GB2.Vector
+import GB2.Geometry
 import GB2.Primitive
 import GB2.Material
 import GB2.Color
