@@ -33,3 +33,10 @@ Run the halray program
 ```
 cabal run ARGUMENTS
 ```
+
+# Adding test modules
+To add a new test module, you need to:
+* Create the proper module folder hierarchy under the __test/__ folder
+* Add the module qualified name to the __other-modules__ list of the test-suite
+  definition in the _.cabal_
+* Add `htf_MODULE_NAME_WITH_DOT_AS_UNDERSCORE_thisModulesTests`
