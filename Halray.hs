@@ -84,7 +84,7 @@ fov = 40
 -- Generate camera ray
 -- (x and y are in an unit cube of [-1, 2] ^ 2
 -- sample is not used yet, it is for super sampling of the pixel
-get_camera_ray :: Float -> Float -> Integer -> Ray -- (x, y, sample) -> Ray
+get_camera_ray :: Float -> Float -> Int -> Ray -- (x, y, sample) -> Ray
 get_camera_ray x y _ = (p0, direction)
   where
     (fx, fy) = (x, -y)
@@ -96,7 +96,7 @@ get_camera_ray x y _ = (p0, direction)
     direction = normalize (p1 - p0)
 
 -- Render an image of size Width x Height, with Sample super sample
-render :: Integer -> Integer -> Integer -> [Color] -- (width, height, spp)
+render :: Int -> Int -> Int -> [Color] -- (width, height, spp)
 render width height spp = [
 
                            -- sum (using fold) the "radiance" of the ray associated with the pixel
@@ -118,9 +118,9 @@ main = do
           args <- getArgs
 
           let
-              width = read (head args) :: Integer
-              height = read (head $ tail args) :: Integer
-              spp = read (head . tail $ tail args) :: Integer
+              width = read (head args) :: Int
+              height = read (head $ tail args) :: Int
+              spp = read (head . tail $ tail args) :: Int
               res = render width height spp
               filename = "test.ppm"
 

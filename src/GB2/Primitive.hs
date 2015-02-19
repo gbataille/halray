@@ -16,9 +16,6 @@ import GB2.Color
 type Ray = (Vector, Vector) -- Origin / Direction
 -- TODO: check how the hell I can be explicit and object field name
 
--- Sphere
-type Sphere = (Float, Point) -- Radius, center
-
 {-|
 Computes the intersection between a ray and a sphere
 The ray direction MUST be normalized

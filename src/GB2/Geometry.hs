@@ -1,5 +1,9 @@
 module GB2.Geometry where
 
+-- ####################################
+-- Vector
+-- ####################################
+
 data Vector = Vector Float Float Float -- x, y, z
               deriving (Show, Eq)
 
@@ -34,3 +38,10 @@ vmul (Vector x y z) s = Vector (x * s) (y * s) (z * s)
 
 vmul2 :: Float -> Vector -> Vector
 vmul2 = flip vmul
+
+-- ####################################
+-- Sphere
+-- ####################################
+
+type Sphere = (Float, Point) -- Radius, center
+
