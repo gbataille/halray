@@ -30,7 +30,7 @@ sameSide :: Ray -- ^ incoming ray
   -> Ray        -- ^ outgoing ray
   -> Vector     -- ^ surface normal
   -> Bool
-sameSide (_, dir1) (_, dir2) normal = (-dir1 `dot` normal) * (dir2 `dot` normal) > 0
+sameSide (Ray _ dir1) (Ray _ dir2) normal = (-dir1 `dot` normal) * (dir2 `dot` normal) > 0
 
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
@@ -38,19 +38,19 @@ primitiveNormal :: Primitive    -- ^ The surface under study
 primitiveNormal (radius, center) point = normalize (point - center)
 
 intersectPoint :: It -> Ray -> Point
-intersectPoint (t, _) (origin, direction) = origin + (t `vmul2` direction)
+intersectPoint (t, _) (Ray origin direction) = origin + (t `vmul2` direction)
 
 intersectToEnergy :: It -> Light -> Ray -> Maybe Color
 intersectToEnergy (_, (_, Mirror r g b)) light _ = Just (Vector r g b)
-intersectToEnergy intersect@(_, (primitive, Diffuse r g b)) light cameraRay@(originRay, directionRay) = 
+intersectToEnergy intersect@(_, (primitive, Diffuse r g b)) light cameraRay@(Ray originRay directionRay) = 
     case sameSide cameraRay lightRay normalAtIntersect of
-      True -> Just ((Vector r g b) `vmul` (1/pi) * (getColor light) `vmul` (1.0/(d**2) ) `vmul` (abs (dot normalAtIntersect (normalize dirRay))))
+      True -> Just ((Vector r g b) `vmul` (1/pi) * (getLightColor light) `vmul` (1.0/(d**2) ) `vmul` (abs (dot normalAtIntersect (normalize dirRay))))
       False -> Nothing
     where intersectP = (intersectPoint intersect cameraRay)
-          dirRay = (getPosition light) - intersectP
-          lightRay = (getPosition light, dirRay)
+          dirRay = (getLightPosition light) - intersectP
+          lightRay = Ray (getLightPosition light) dirRay
           normalAtIntersect = (primitiveNormal primitive intersectP)
-          d = norm (intersectP - (getPosition light))
+          d = norm (intersectP - (getLightPosition light))
 
 readColor :: Maybe Color -> Color
 readColor Nothing = Vector 0 0 0
@@ -85,7 +85,7 @@ fov = 40
 -- (x and y are in an unit cube of [-1, 2] ^ 2
 -- sample is not used yet, it is for super sampling of the pixel
 get_camera_ray :: Float -> Float -> Int -> Ray -- (x, y, sample) -> Ray
-get_camera_ray x y _ = (p0, direction)
+get_camera_ray x y _ = (Ray p0 direction)
   where
     (fx, fy) = (x, -y)
     -- p0, on near is in [0, 100] ^ 2 at z = 140

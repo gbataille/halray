@@ -1,9 +1,5 @@
 module GB2.Primitive where
 
--- Later I'l like to have a Scene, which containes some
--- Objects. Objects stores primitives (such as triangles and spheres)
--- associated with materials.
-
 -- In a near future, A scene may become a ray intersection
 -- accelerator, and Object may be something else than primitives (such as
 -- transform or aggregate of primitives)
@@ -13,8 +9,21 @@ import GB2.Material
 import GB2.Color
 
 -- Rays
-type Ray = (Vector, Vector) -- Origin / Direction
+data Ray = Ray { getRayOrigin :: Vector, getRayDirection :: Vector } -- Origin / Direction
 -- TODO: check how the hell I can be explicit and object field name
+
+-- Primitives
+type Primitive = Sphere
+-- TODO: latter, set triangles, aabb, ...
+
+-- Objects
+-- An object is a primitive with a material
+type Object = (Primitive, Material)
+
+-- Scene
+type Scene = [Object]
+type It = (Float, Object) -- Float is the t of intersection (distance between ray origin and light)
+data Light = Light { getLightPosition :: Point, getLightColor :: Color }
 
 {-|
 Computes the intersection between a ray and a sphere
@@ -61,7 +70,7 @@ t1 = b_o_2 + sqrt(det_o_4)
 raySphereIntersect :: Ray       -- ^ a Ray with a normalized direction
                 -> Sphere       -- ^ the Sphere we are trying to intersect the ray with
                 -> Maybe Float  -- ^ the distance between the ray origin and the intersection point
-raySphereIntersect (origin, direction) (radius, center) =
+raySphereIntersect (Ray origin direction) (radius, center) =
                       if det_o_4 < 0
                          then Nothing
                          else
@@ -78,18 +87,6 @@ raySphereIntersect (origin, direction) (radius, center) =
                             t1 = b_o_2 + sqrt det_o_4
 
 
--- Primitives
-type Primitive = Sphere
--- TODO: latter, set triangles, aabb, ...
-
--- Objects
--- An object is a primitive with a material
-type Object = (Primitive, Material)
-
--- Scene
-type Scene = [Object]
-type It = (Float, Object) -- Float is the t of intersection (distance between ray origin and light)
-data Light = Light { getPosition :: Point, getColor :: Color }
 
 -- Find the closest intersection
 -- TODO: understand how I can make something cleaner than that !
