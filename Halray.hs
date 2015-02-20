@@ -14,13 +14,13 @@ import GB2.Color
 -- Scene intersect
 makeDefaultScene :: Scene
 makeDefaultScene = [
-    Object (100000.0, Vector (100000.0 + 1.0) 40.8 81.6) (Diffuse 1.0 0.0 0),	-- Left
-    Object (100000.0, Vector (-100000.0 + 99.0) 40.8 81.6) (Diffuse 0 0 1),	-- Rght
-    Object (100000.0, Vector 50 40.8 100000) (Diffuse 1 0 1),	-- Back
-    Object (100000.0, Vector 50 100000.0 81.6) (Diffuse 1 1 0),	-- Bottom
-    Object (100000.0, Vector 50 (-100000.0 + 81.6) 81.6) (Diffuse 0 0 1),	-- Top
-    Object (16.5, Vector 27 16.5 47) (Mirror 1 1 1),	-- Mirror
-    Object (16.5, Vector 73 16.5 78) (Diffuse 1 1 1)	-- Glass
+    Object (Sphere 100000.0 $ Vector (100000.0 + 1.0) 40.8 81.6) (Diffuse 1.0 0.0 0),	-- Left
+    Object (Sphere 100000.0 $ Vector (-100000.0 + 99.0) 40.8 81.6) (Diffuse 0 0 1),	-- Rght
+    Object (Sphere 100000.0 $ Vector 50 40.8 100000) (Diffuse 1 0 1),	-- Back
+    Object (Sphere 100000.0 $ Vector 50 100000.0 81.6) (Diffuse 1 1 0),	-- Bottom
+    Object (Sphere 100000.0 $ Vector 50 (-100000.0 + 81.6) 81.6) (Diffuse 0 0 1),	-- Top
+    Object (Sphere 16.5 $ Vector 27 16.5 47) (Mirror 1 1 1),	-- Mirror
+    Object (Sphere 16.5 $ Vector 73 16.5 78) (Diffuse 1 1 1)	-- Glass
   ]
 
 makeDefaultLight :: Light
@@ -35,7 +35,7 @@ sameSide (Ray _ dir1) (Ray _ dir2) normal = (-dir1 `dot` normal) * (dir2 `dot` n
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
   -> Normal
-primitiveNormal (radius, center) point = normalize (point - center)
+primitiveNormal (Sphere radius center) point = normalize (point - center)
 
 intersectPoint :: It -> Ray -> Point
 intersectPoint (t, _) (Ray origin direction) = origin + (t `vmul2` direction)

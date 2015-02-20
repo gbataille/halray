@@ -43,5 +43,5 @@ vmul2 = flip vmul
 -- Sphere
 -- ####################################
 
-type Sphere = (Float, Point) -- Radius, center
+data Sphere = Sphere { getSphereRadius :: Float, getSphereCenter :: Point } -- Radius, center
 

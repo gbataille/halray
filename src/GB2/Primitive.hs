@@ -70,7 +70,7 @@ t1 = b_o_2 + sqrt(det_o_4)
 raySphereIntersect :: Ray       -- ^ a Ray with a normalized direction
                 -> Sphere       -- ^ the Sphere we are trying to intersect the ray with
                 -> Maybe Float  -- ^ the distance between the ray origin and the intersection point
-raySphereIntersect (Ray origin direction) (radius, center) =
+raySphereIntersect (Ray origin direction) (Sphere radius center) =
                       if det_o_4 < 0
                          then Nothing
                          else
