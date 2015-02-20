@@ -18,7 +18,7 @@ type Primitive = Sphere
 
 -- Objects
 -- An object is a primitive with a material
-type Object = (Primitive, Material)
+data Object = Object { getObjectPrimitive :: Primitive, getObjectMaterial :: Material }
 
 -- Scene
 type Scene = [Object]
@@ -92,13 +92,13 @@ raySphereIntersect (Ray origin direction) (radius, center) =
 -- TODO: understand how I can make something cleaner than that !
 intersectScene :: Scene -> Ray -> Maybe It
 intersectScene [] _ = Nothing
-intersectScene ((prim, material):trail) ray =
+intersectScene (object@(Object prim material):trail) ray =
                 case intersectScene trail ray of
                    Nothing -> case raySphereIntersect ray prim of
                       Nothing -> Nothing
-                      Just t -> Just (t, (prim, material))
+                      Just t -> Just (t, object)
                    Just (t, closestsphere) -> case raySphereIntersect ray prim of
                           Nothing -> Just (t, closestsphere)
                           Just t2 -> if t < t2
                                         then Just (t, closestsphere)
-                                        else Just (t2, (prim, material))
+                                        else Just (t2, object)

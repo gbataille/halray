@@ -14,13 +14,13 @@ import GB2.Color
 -- Scene intersect
 makeDefaultScene :: Scene
 makeDefaultScene = [
-    ((100000.0, Vector (100000.0 + 1.0) 40.8 81.6), Diffuse 1.0 0.0 0),	-- Left
-    ((100000.0, Vector (-100000.0 + 99.0) 40.8 81.6), Diffuse 0 0 1),	-- Rght
-    ((100000.0, Vector 50 40.8 100000), Diffuse 1 0 1),	-- Back
-    ((100000.0, Vector 50 100000.0 81.6), Diffuse 1 1 0),	-- Bottom
-    ((100000.0, Vector 50 (-100000.0 + 81.6) 81.6), Diffuse 0 0 1),	-- Top
-    ((16.5, Vector 27 16.5 47), Mirror 1 1 1),	-- Mirror
-    ((16.5, Vector 73 16.5 78), Diffuse 1 1 1)	-- Glass
+    Object (100000.0, Vector (100000.0 + 1.0) 40.8 81.6) (Diffuse 1.0 0.0 0),	-- Left
+    Object (100000.0, Vector (-100000.0 + 99.0) 40.8 81.6) (Diffuse 0 0 1),	-- Rght
+    Object (100000.0, Vector 50 40.8 100000) (Diffuse 1 0 1),	-- Back
+    Object (100000.0, Vector 50 100000.0 81.6) (Diffuse 1 1 0),	-- Bottom
+    Object (100000.0, Vector 50 (-100000.0 + 81.6) 81.6) (Diffuse 0 0 1),	-- Top
+    Object (16.5, Vector 27 16.5 47) (Mirror 1 1 1),	-- Mirror
+    Object (16.5, Vector 73 16.5 78) (Diffuse 1 1 1)	-- Glass
   ]
 
 makeDefaultLight :: Light
@@ -41,8 +41,8 @@ intersectPoint :: It -> Ray -> Point
 intersectPoint (t, _) (Ray origin direction) = origin + (t `vmul2` direction)
 
 intersectToEnergy :: It -> Light -> Ray -> Maybe Color
-intersectToEnergy (_, (_, Mirror r g b)) light _ = Just (Vector r g b)
-intersectToEnergy intersect@(_, (primitive, Diffuse r g b)) light cameraRay@(Ray originRay directionRay) = 
+intersectToEnergy (_, (Object _ (Mirror r g b))) light _ = Just (Vector r g b)
+intersectToEnergy intersect@(_, (Object primitive (Diffuse r g b))) light cameraRay@(Ray originRay directionRay) = 
     case sameSide cameraRay lightRay normalAtIntersect of
       True -> Just ((Vector r g b) `vmul` (1/pi) * (getLightColor light) `vmul` (1.0/(d**2) ) `vmul` (abs (dot normalAtIntersect (normalize dirRay))))
       False -> Nothing
