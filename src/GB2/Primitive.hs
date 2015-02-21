@@ -116,8 +116,8 @@ rayPrimitiveIntersectDistance (Ray origin direction) (Triangle v0 v1 v2)
 
 -- | Finds the closest intersection
 -- TODO: understand how I can make something cleaner than that !
-intersectScene :: Scene 
-  -> Ray 
+intersectScene :: Scene
+  -> Ray
   -> Maybe (Float, It)      -- ^ Returns the distance to the object and the intersection with the object
 intersectScene [] _ = Nothing
 intersectScene (object@(Object prim _):trail) ray =
