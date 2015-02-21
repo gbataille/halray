@@ -32,7 +32,7 @@ radianceXY :: Scene       -- ^ Scene to render
            -> (Float, Float)  -- ^ (x, y)
            -> Color
 radianceXY scene light spp coord = 
-  foldl (+) (Vector 0 0 0) [ radianceRay scene light (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
+  (vmul2 (1.0 / (fromIntegral spp))) $ foldl (+) (Vector 0 0 0) [ radianceRay scene light (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
 
 -- Camera bullshit, we will need to improve this
 near :: Float
@@ -81,9 +81,6 @@ coordListPlane w h = do
       yImpPlane = (2.0 * (fromIntegral y) / (fromIntegral h) - 1.0)
   return (xImgPlane, yImpPlane)
 
-  -- sample <- [0..(spp-1)]
-  -- return $ get_camera_ray xImgPlane yImpPlane sample
-
 -- | Render an image of size Width x Height, with Sample super sample, with a scene description and a light
 render :: Int       -- ^ width
        -> Int       -- ^ height
@@ -92,6 +89,7 @@ render :: Int       -- ^ width
        -> Light     -- ^ Light in the scene
        -> [Color]
 render width height spp scene light =
-    -- normalize by 1.0 / spp
-    fmap (vmul2 (1.0 / (fromIntegral spp)))
-      (fmap (radianceXY scene light spp) (coordListPlane width height))
+    (fmap
+      (radianceXY scene light spp)
+      (coordListPlane width height)
+    )
