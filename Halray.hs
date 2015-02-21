@@ -26,42 +26,26 @@ makeDefaultScene = [
 makeDefaultLight :: Light
 makeDefaultLight = Light (Vector 50 70 81.6) (Vector 20000 20000 20000)
 
-sameSide :: Ray -- ^ incoming ray
-  -> Ray        -- ^ outgoing ray
-  -> Vector     -- ^ surface normal
-  -> Bool
-sameSide (Ray _ dir1) (Ray _ dir2) normal = (-dir1 `dot` normal) * (dir2 `dot` normal) > 0
-
-primitiveNormal :: Primitive    -- ^ The surface under study
-  -> Point                      -- ^ The point on which the normal is to be computed
-  -> Normal
-primitiveNormal (Sphere radius center) point = normalize (point - center)
-
-intersectPoint :: It -> Ray -> Point
-intersectPoint (t, _) (Ray origin direction) = origin + (t `vmul2` direction)
-
-intersectToEnergy :: It -> Light -> Ray -> Maybe Color
-intersectToEnergy (_, (Object _ (Mirror r g b))) light _ = Just (Vector r g b)
-intersectToEnergy intersect@(_, (Object primitive (Diffuse r g b))) light cameraRay@(Ray originRay directionRay) = 
-    case sameSide cameraRay lightRay normalAtIntersect of
-      True -> Just ((Vector r g b) `vmul` (1/pi) * (getLightColor light) `vmul` (1.0/(d**2) ) `vmul` (abs (dot normalAtIntersect (normalize dirRay))))
+intersectToEnergy :: It -> Light -> Maybe Color
+intersectToEnergy it light = 
+    case sameSide incomingRay dirRay normalAtIntersect of
+      True -> Just ((bsdf material) * (getLightColor light) `vmul` (1.0/(d**2) )`vmul` (abs (dot normalAtIntersect dirRay)))
       False -> Nothing
-    where intersectP = (intersectPoint intersect cameraRay)
-          dirRay = (getLightPosition light) - intersectP
-          lightRay = Ray (getLightPosition light) dirRay
-          normalAtIntersect = (primitiveNormal primitive intersectP)
-          d = norm (intersectP - (getLightPosition light))
-
-readColor :: Maybe Color -> Color
-readColor Nothing = Vector 0 0 0
-readColor (Just c) = c
+    where 
+      material = (getObjectMaterial $ getItObject it)
+      intersectP = (getItPoint it)
+      incomingRay = (getItDirToRayOrig it)
+      dirRay = normalize ((getLightPosition light) - intersectP)
+      lightRay = Ray (getLightPosition light) dirRay
+      normalAtIntersect = (getItNormal it)
+      d = norm (intersectP - (getLightPosition light))
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
 radiance :: Ray -> Color
 radiance ray = case intersectScene makeDefaultScene ray of
                    Nothing -> Vector 0 0 0
-                   Just intersect -> readColor $ intersectToEnergy intersect makeDefaultLight ray
+                   Just (_, intersect) -> readColor $ intersectToEnergy intersect makeDefaultLight
 
 -- Camera bullshit, we will need to improve this
 near :: Float
@@ -109,7 +93,7 @@ render width height spp = [
                               -- foreach super sample
                               | sample <- [0..(spp-1)]])
 
-                           -- Foreach pixels, compute a value
+                              -- Foreach pixels, compute a value
                               | y <- [0..(height-1)], x <- [0..(width-1)]]
 
 -- | 'main' runs the main program

@@ -22,14 +22,24 @@ data Object = Object { getObjectPrimitive :: Primitive, getObjectMaterial :: Mat
 
 -- Scene
 type Scene = [Object]
-type It = (Float, Object) -- Float is the t of intersection (distance between ray origin and light)
+data It = It {
+        getItPoint :: Point,            -- ^ Intersection point
+        getItDirToRayOrig :: Vector,    -- ^ Normalized vector pointing to the incoming ray origin
+        getItObject :: Object,          -- ^ Object intersected
+        getItNormal :: Vector           -- ^ Normal to the surface at the intersection point
+        } -- Float is the t of intersection (distance between ray origin and light)
 data Light = Light { getLightPosition :: Point, getLightColor :: Color }
+
+primitiveNormal :: Primitive    -- ^ The surface under study
+  -> Point                      -- ^ The point on which the normal is to be computed
+  -> Normal
+primitiveNormal (Sphere radius center) point = normalize (point - center)
 
 {-|
 Computes the intersection between a ray and a sphere
 The ray direction MUST be normalized
 
-The maths are trivials. the ray coordinate is
+The maths are trivials. the ray coordinates are
 P = Origin + t * Direction
 An element on the sphere is
 || Center - P || == radius
@@ -67,10 +77,10 @@ With a similar method, we get
 t1 = b_o_2 + sqrt(det_o_4)
 
 -}
-raySphereIntersect :: Ray       -- ^ a Ray with a normalized direction
-                -> Sphere       -- ^ the Sphere we are trying to intersect the ray with
-                -> Maybe Float  -- ^ the distance between the ray origin and the intersection point
-raySphereIntersect (Ray origin direction) (Sphere radius center) =
+raySphereIntersectDistance :: Ray       -- ^ a Ray with a normalized direction
+  -> Sphere                             -- ^ the Sphere we are trying to intersect the ray with
+  -> Maybe Float                        -- ^ the distance between the ray origin and the intersection point
+raySphereIntersectDistance (Ray origin direction) (Sphere radius center) =
                       if det_o_4 < 0
                          then Nothing
                          else
@@ -88,17 +98,28 @@ raySphereIntersect (Ray origin direction) (Sphere radius center) =
 
 
 
--- Find the closest intersection
+
+-- | Finds the closest intersection
 -- TODO: understand how I can make something cleaner than that !
-intersectScene :: Scene -> Ray -> Maybe It
+intersectScene :: Scene 
+  -> Ray 
+  -> Maybe (Float, It)      -- ^ Returns the distance to the object and the intersection with the object
 intersectScene [] _ = Nothing
 intersectScene (object@(Object prim material):trail) ray =
                 case intersectScene trail ray of
-                   Nothing -> case raySphereIntersect ray prim of
+                   Nothing -> case raySphereIntersectDistance ray prim of
                       Nothing -> Nothing
-                      Just t -> Just (t, object)
-                   Just (t, closestsphere) -> case raySphereIntersect ray prim of
-                          Nothing -> Just (t, closestsphere)
+                      Just t -> Just (t, It point direction object normal)
+                        where
+                          direction = - (getRayDirection ray)
+                          point = (getRayOrigin ray) + (t `vmul2` (getRayDirection ray))
+                          normal = primitiveNormal prim point
+                   Just (t, closestSphereIntersection) -> case raySphereIntersectDistance ray prim of
+                          Nothing -> Just (t, closestSphereIntersection)
                           Just t2 -> if t < t2
-                                        then Just (t, closestsphere)
-                                        else Just (t2, object)
+                                        then Just (t, closestSphereIntersection)
+                                        else Just (t2, It point direction object normal)
+                                          where
+                                            direction = - (getRayDirection ray)
+                                            point = (getRayOrigin ray) + (t2 `vmul2` (getRayDirection ray))
+                                            normal = primitiveNormal prim point

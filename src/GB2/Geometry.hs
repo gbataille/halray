@@ -45,3 +45,22 @@ vmul2 = flip vmul
 
 data Sphere = Sphere { getSphereRadius :: Float, getSphereCenter :: Point } -- Radius, center
 
+
+-- ####################################
+-- Space geometry
+-- ####################################
+
+{-
+ Takes 2 vector leaving (or hitting) a surface from a common point and the 
+ normal to the surface at that point.
+
+ Returns True if both vectors are on the same side of the surface.
+
+ Law: both vectors and the normal join at the same point on the surface
+-}
+sameSide :: Vector -- ^ outgoing vector 1
+  -> Vector        -- ^ outgoing vector 2
+  -> Normal        -- ^ surface's normal at the intersection point
+  -> Bool
+sameSide v1 v2 normal = (v1 `dot` normal) * (v2 `dot` normal) > 0
+
