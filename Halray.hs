@@ -27,11 +27,11 @@ makeDefaultLight :: Light
 makeDefaultLight = Light (Vector 50 70 81.6) (Vector 20000 20000 20000)
 
 intersectToEnergy :: It -> Light -> Maybe Color
-intersectToEnergy it light = 
-    case sameSide incomingRay dirRay normalAtIntersect of
-      True -> Just ((bsdf material) * (getLightColor light) `vmul` (1.0/(d**2) )`vmul` (abs (dot normalAtIntersect dirRay)))
-      False -> Nothing
-    where 
+intersectToEnergy it light
+  | sameSide incomingRay dirRay normalAtIntersect =
+    Just ((bsdf material) * (getLightColor light) `vmul` (1.0/(d**2) )`vmul` (abs (dot normalAtIntersect dirRay)))
+  | otherwise = Nothing
+    where
       material = (getObjectMaterial $ getItObject it)
       intersectP = (getItPoint it)
       incomingRay = (getItDirToRayOrig it)
