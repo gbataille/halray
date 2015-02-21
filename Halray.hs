@@ -14,13 +14,13 @@ import GB2.Color
 -- Scene intersect
 makeDefaultScene :: Scene
 makeDefaultScene = [
-    Object (Sphere 100000.0 $ Vector (100000.0 + 1.0) 40.8 81.6) (Diffuse 1.0 0.0 0),	-- Left
-    Object (Sphere 100000.0 $ Vector (-100000.0 + 99.0) 40.8 81.6) (Diffuse 0 0 1),	-- Rght
-    Object (Sphere 100000.0 $ Vector 50 40.8 100000) (Diffuse 1 0 1),	-- Back
-    Object (Sphere 100000.0 $ Vector 50 100000.0 81.6) (Diffuse 1 1 0),	-- Bottom
-    Object (Sphere 100000.0 $ Vector 50 (-100000.0 + 81.6) 81.6) (Diffuse 0 0 1),	-- Top
-    Object (Sphere 16.5 $ Vector 27 16.5 47) (Mirror 1 1 1),	-- Mirror
-    Object (Sphere 16.5 $ Vector 73 16.5 78) (Diffuse 1 1 1)	-- Glass
+    Object (Sphere 100000.0 $ Vector (100000.0 + 1.0) 40.8 81.6) (Diffuse $ Vector 1.0 0.0 0),	-- Left
+    Object (Sphere 100000.0 $ Vector (-100000.0 + 99.0) 40.8 81.6) (Diffuse $ Vector 0 0 1),	-- Rght
+    Object (Sphere 100000.0 $ Vector 50 40.8 100000) (Diffuse $ Vector 1 0 1),	-- Back
+    Object (Sphere 100000.0 $ Vector 50 100000.0 81.6) (Diffuse $ Vector 1 1 0),	-- Bottom
+    Object (Sphere 100000.0 $ Vector 50 (-100000.0 + 81.6) 81.6) (Diffuse $ Vector 0 0 1),	-- Top
+    Object (Sphere 16.5 $ Vector 27 16.5 47) (Mirror $ Vector 1 1 1),	-- Mirror
+    Object (Sphere 16.5 $ Vector 73 16.5 78) (Diffuse $ Vector 1 1 1)	-- Glass
   ]
 
 makeDefaultLight :: Light
