@@ -12,7 +12,7 @@ materialAlbedo (Mirror color) = color
 
 bsdf :: Material -> Color
 bsdf (Diffuse color) = color `vmul` (1/pi)
-bsdf (Mirror color) = Vector 0 0 0
+bsdf (Mirror _) = Vector 0 0 0
 
 -- Later, all the different material while inherite from Material and
 -- implements different sampling/evaluating methods using something

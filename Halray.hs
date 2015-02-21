@@ -26,17 +26,16 @@ makeDefaultScene = [
 makeDefaultLight :: Light
 makeDefaultLight = Light (Vector 50 70 81.6) (Vector 20000 20000 20000)
 
-intersectToEnergy :: It -> Light -> Maybe Color
+intersectToEnergy :: It -> Light -> Color
 intersectToEnergy it light
   | sameSide incomingRay dirRay normalAtIntersect =
-    Just ((bsdf material) * (getLightColor light) `vmul` (1.0/(d**2) )`vmul` (abs (dot normalAtIntersect dirRay)))
-  | otherwise = Nothing
+    ((bsdf material) * (getLightColor light) `vmul` (1.0/(d**2) )`vmul` (abs (dot normalAtIntersect dirRay)))
+  | otherwise = Vector 0 0 0
     where
       material = (getObjectMaterial $ getItObject it)
       intersectP = (getItPoint it)
       incomingRay = (getItDirToRayOrig it)
       dirRay = normalize ((getLightPosition light) - intersectP)
-      lightRay = Ray (getLightPosition light) dirRay
       normalAtIntersect = (getItNormal it)
       d = norm (intersectP - (getLightPosition light))
 
@@ -45,7 +44,7 @@ intersectToEnergy it light
 radiance :: Ray -> Color
 radiance ray = case intersectScene makeDefaultScene ray of
                    Nothing -> Vector 0 0 0
-                   Just (_, intersect) -> readColor $ intersectToEnergy intersect makeDefaultLight
+                   Just (_, intersect) -> intersectToEnergy intersect makeDefaultLight
 
 -- Camera bullshit, we will need to improve this
 near :: Float

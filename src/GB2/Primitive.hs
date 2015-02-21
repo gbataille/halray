@@ -33,7 +33,7 @@ data Light = Light { getLightPosition :: Point, getLightColor :: Color }
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
   -> Normal
-primitiveNormal (Sphere radius center) point = normalize (point - center)
+primitiveNormal (Sphere _ center) point = normalize (point - center)
 
 {-|
 Computes the intersection between a ray and a sphere
@@ -105,7 +105,7 @@ intersectScene :: Scene
   -> Ray 
   -> Maybe (Float, It)      -- ^ Returns the distance to the object and the intersection with the object
 intersectScene [] _ = Nothing
-intersectScene (object@(Object prim material):trail) ray =
+intersectScene (object@(Object prim _):trail) ray =
                 case intersectScene trail ray of
                    Nothing -> case raySphereIntersectDistance ray prim of
                       Nothing -> Nothing
