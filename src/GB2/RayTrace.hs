@@ -5,6 +5,7 @@ import GB2.Geometry
 import GB2.Color
 import GB2.Material
 
+-- | Returns the energy transmitted by a given light at an intersection point
 intersectToEnergy :: It -> Light -> Color
 intersectToEnergy it light
   | sameSide incomingRay dirRay normalAtIntersect =
@@ -20,10 +21,18 @@ intersectToEnergy it light
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
-radiance :: Ray -> Scene -> Light -> Color
-radiance ray scene light = case intersectScene scene ray of
+radianceRay :: Scene -> Light -> Ray -> Color
+radianceRay scene light ray = case intersectScene scene ray of
                                 Nothing -> Vector 0 0 0
                                 Just (_, intersect) -> intersectToEnergy intersect light
+
+radianceXY :: Scene       -- ^ Scene to render
+           -> Light       -- ^ Light
+           -> Int         -- ^ number of samples
+           -> (Float, Float)  -- ^ (x, y)
+           -> Color
+radianceXY scene light spp coord = 
+  foldl (+) (Vector 0 0 0) [ radianceRay scene light (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
 
 -- Camera bullshit, we will need to improve this
 near :: Float
@@ -35,19 +44,23 @@ far = 10000.0
 fov :: Float
 fov = 40
 
--- The idea is simple, but complexe to apply.
--- We have two planes, on called "Near" at z = near and far at z = far.
--- First plane is between 0 and 100 for x and y
--- second plane is between 0 and 100 times fov for x and y.
+{-
+ The idea is simple, but complexe to apply.
+ We have two planes, on called "Near" at z = near and far at z = far.
+ First plane is between 0 and 100 for x and y
+ second plane is between 0 and 100 times fov for x and y.
 
--- If fov is 1, all rays are parallel
--- if fov is > 1, rays diverges and gives the perspective effect ;)
+ If fov is 1, all rays are parallel
+ if fov is > 1, rays diverges and gives the perspective effect ;)
 
--- Generate camera ray
--- (x and y are in an unit cube of [-1, 2] ^ 2
--- sample is not used yet, it is for super sampling of the pixel
-get_camera_ray :: Float -> Float -> Int -> Ray -- (x, y, sample) -> Ray
-get_camera_ray x y _ = (Ray p0 direction)
+ Generate camera ray
+ (x and y are in an unit cube of [-1, 2] ^ 2
+ sample is not used yet, it is for super sampling of the pixel
+-}
+getCameraRay :: Int              -- ^ Sample ID
+             -> (Float, Float)   -- ^ (x, y) coordinates
+             -> Ray
+getCameraRay _ (x, y) = (Ray p0 direction)
   where
     (fx, fy) = (x, -y)
     -- p0, on near is in [0, 100] ^ 2 at z = 140
@@ -57,20 +70,28 @@ get_camera_ray x y _ = (Ray p0 direction)
     p1 = Vector ((fx * fov + 1.0) * 50.0) ((fy * fov + 1.0) * 50.0) (-far)
     direction = normalize (p1 - p0)
 
--- Render an image of size Width x Height, with Sample super sample
-render :: Int -> Int -> Int -> Scene -> Light -> [Color] -- (width, height, spp)
-render width height spp scene light = [
 
-                           -- sum (using fold) the "radiance" of the ray associated with the pixel
-                           -- normalize by 1.0 / spp
-                           (1.0 / (fromIntegral spp))
-                           `vmul2`
-                           (foldl (+) (Vector 0 0 0) [
-                              -- call get_camera_ray with values in [-1 1] ^ 2
-                              radiance (get_camera_ray (2.0 * (fromIntegral x) / (fromIntegral width) - 1.0) (2.0 * (fromIntegral y) / (fromIntegral height) - 1.0) sample) scene light
-                              -- foreach super sample
-                              | sample <- [0..(spp-1)]])
+coordListPlane :: Int       -- ^ width
+               -> Int       -- ^ height
+               -> [(Float, Float)]
+coordListPlane w h = do
+  y <- [0..(h-1)]
+  x <- [0..(w-1)]
+  let xImgPlane = (2.0 * (fromIntegral x) / (fromIntegral w) - 1.0)
+      yImpPlane = (2.0 * (fromIntegral y) / (fromIntegral h) - 1.0)
+  return (xImgPlane, yImpPlane)
 
-                              -- Foreach pixels, compute a value
-                              | y <- [0..(height-1)], x <- [0..(width-1)]]
+  -- sample <- [0..(spp-1)]
+  -- return $ get_camera_ray xImgPlane yImpPlane sample
 
+-- | Render an image of size Width x Height, with Sample super sample, with a scene description and a light
+render :: Int       -- ^ width
+       -> Int       -- ^ height
+       -> Int       -- ^ spp
+       -> Scene     -- ^ Scene to render
+       -> Light     -- ^ Light in the scene
+       -> [Color]
+render width height spp scene light =
+    -- normalize by 1.0 / spp
+    fmap (vmul2 (1.0 / (fromIntegral spp)))
+      (fmap (radianceXY scene light spp) (coordListPlane width height))
