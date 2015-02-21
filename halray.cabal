@@ -19,7 +19,7 @@ Library
   default-language:   Haskell2010
   build-depends:      base >=4.7
   ghc-options:        -Wall -O3
-  exposed-modules:    GB2.Vector GB2.Color GB2.Primitive GB2.Material
+  exposed-modules:    GB2.Geometry GB2.Color GB2.Primitive GB2.Material
 
 Executable halray
   main-is:            Halray.hs
@@ -35,6 +35,7 @@ Test-suite tests
   default-extensions: OverloadedStrings
   hs-source-dirs:     test
   main-is:            Halray_test.hs
+  other-modules:      Tests.GB2.Geometry
   build-depends:      base,
                       halray,
                       HTF >= 0.10

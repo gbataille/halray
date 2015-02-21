@@ -1,4 +1,8 @@
-module GB2.Vector where
+module GB2.Geometry where
+
+-- ####################################
+-- Vector
+-- ####################################
 
 data Vector = Vector Float Float Float -- x, y, z
               deriving (Show, Eq)
@@ -34,3 +38,29 @@ vmul (Vector x y z) s = Vector (x * s) (y * s) (z * s)
 
 vmul2 :: Float -> Vector -> Vector
 vmul2 = flip vmul
+
+-- ####################################
+-- Sphere
+-- ####################################
+
+data Sphere = Sphere { getSphereRadius :: Float, getSphereCenter :: Point } -- Radius, center
+
+
+-- ####################################
+-- Space geometry
+-- ####################################
+
+{-
+ Takes 2 vector leaving (or hitting) a surface from a common point and the 
+ normal to the surface at that point.
+
+ Returns True if both vectors are on the same side of the surface.
+
+ Law: both vectors and the normal join at the same point on the surface
+-}
+sameSide :: Vector -- ^ outgoing vector 1
+  -> Vector        -- ^ outgoing vector 2
+  -> Normal        -- ^ surface's normal at the intersection point
+  -> Bool
+sameSide v1 v2 normal = (v1 `dot` normal) * (v2 `dot` normal) > 0
+
