@@ -43,7 +43,8 @@ vmul2 = flip vmul
 -- Sphere
 -- ####################################
 
-data Sphere = Sphere { getSphereRadius :: Float, getSphereCenter :: Point } -- Radius, center
+data Primitive = Sphere { getSphereRadius :: Float, getSphereCenter :: Point } -- Radius, center
+                | Triangle Point Point Point -- Three coordinates of the triangle
 
 
 -- ####################################

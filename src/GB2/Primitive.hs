@@ -12,10 +12,6 @@ import GB2.Color
 data Ray = Ray { getRayOrigin :: Vector, getRayDirection :: Vector } -- Origin / Direction
 -- TODO: check how the hell I can be explicit and object field name
 
--- Primitives
-type Primitive = Sphere
--- TODO: latter, set triangles, aabb, ...
-
 -- Objects
 -- An object is a primitive with a material
 data Object = Object { getObjectPrimitive :: Primitive, getObjectMaterial :: Material }
@@ -33,7 +29,9 @@ data Light = Light { getLightPosition :: Point, getLightColor :: Color }
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
   -> Normal
+
 primitiveNormal (Sphere _ center) point = normalize (point - center)
+primitiveNormal (Triangle p0 p1 p2) _ = normalize $ cross (p1 - p0) (p2 - p0)
 
 {-|
 Computes the intersection between a ray and a sphere
@@ -77,11 +75,11 @@ With a similar method, we get
 t1 = b_o_2 + sqrt(det_o_4)
 
 -}
-raySphereIntersectDistance :: Ray       -- ^ a Ray with a normalized direction
-  -> Sphere                             -- ^ the Sphere we are trying to intersect the ray with
+rayPrimitiveIntersectDistance :: Ray    -- ^ a Ray with a normalized direction
+  -> Primitive                          -- ^ the Primitive we are trying to intersect the ray with
   -> Maybe Float                        -- ^ the distance between the ray origin and the intersection point
 
-raySphereIntersectDistance (Ray origin direction) (Sphere radius center)
+rayPrimitiveIntersectDistance (Ray origin direction) (Sphere radius center)
   | det_o_4 < 0 = Nothing
   | t0 >= 0 = Just t0
   | t1 >= 0 = Just t1
@@ -93,6 +91,29 @@ raySphereIntersectDistance (Ray origin direction) (Sphere radius center)
     t0 = b_o_2 - sqrt det_o_4
     t1 = b_o_2 + sqrt det_o_4
 
+rayPrimitiveIntersectDistance (Ray origin direction) (Triangle v0 v1 v2)
+  | abs a < 0.00001 = Nothing
+  | u < 0 || u > 1 = Nothing
+  | v < 0 || (u + v) > 1 = Nothing
+  | t < 0 = Nothing
+  | otherwise = Just t
+  where
+    e1 = v1 - v0
+    e2 = v2 - v0
+
+    h = cross direction e2
+    a = dot e1 h
+
+    f = 1 / a
+    s = origin - v0
+
+    u = f * dot s h
+
+    q = cross s e1
+    v = f * dot direction q
+
+    t = f * dot e2 q
+
 -- | Finds the closest intersection
 -- TODO: understand how I can make something cleaner than that !
 intersectScene :: Scene 
@@ -101,14 +122,14 @@ intersectScene :: Scene
 intersectScene [] _ = Nothing
 intersectScene (object@(Object prim _):trail) ray =
                 case intersectScene trail ray of
-                   Nothing -> case raySphereIntersectDistance ray prim of
+                   Nothing -> case rayPrimitiveIntersectDistance ray prim of
                       Nothing -> Nothing
                       Just t -> Just (t, It point direction object normal)
                         where
                           direction = - (getRayDirection ray)
                           point = (getRayOrigin ray) + (t `vmul2` (getRayDirection ray))
                           normal = primitiveNormal prim point
-                   Just (t, closestSphereIntersection) -> case raySphereIntersectDistance ray prim of
+                   Just (t, closestSphereIntersection) -> case rayPrimitiveIntersectDistance ray prim of
                           Nothing -> Just (t, closestSphereIntersection)
                           Just t2 -> if t < t2
                                         then Just (t, closestSphereIntersection)
