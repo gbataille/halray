@@ -45,7 +45,10 @@ vmul2 = flip vmul
 
 data Primitive = Sphere { getSphereRadius :: Float, getSphereCenter :: Point } -- Radius, center
                 | Triangle Point Point Point -- Three coordinates of the triangle
+                deriving (Show)
 
+type Triangle = Primitive
+type Sphere = Primitive
 
 -- ####################################
 -- Space geometry
