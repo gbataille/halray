@@ -80,24 +80,18 @@ t1 = b_o_2 + sqrt(det_o_4)
 raySphereIntersectDistance :: Ray       -- ^ a Ray with a normalized direction
   -> Sphere                             -- ^ the Sphere we are trying to intersect the ray with
   -> Maybe Float                        -- ^ the distance between the ray origin and the intersection point
-raySphereIntersectDistance (Ray origin direction) (Sphere radius center) =
-                      if det_o_4 < 0
-                         then Nothing
-                         else
-                           if t0 >= 0
-                           then Just t0
-                           else if t1 >= 0
-                                   then Just t1
-                                   else Nothing
-                      where
-                            op = center - origin
-                            b_o_2 = dot op direction
-                            det_o_4 = (b_o_2 * b_o_2) - (dot op op) + (radius * radius)
-                            t0 = b_o_2 - sqrt det_o_4
-                            t1 = b_o_2 + sqrt det_o_4
 
-
-
+raySphereIntersectDistance (Ray origin direction) (Sphere radius center)
+  | det_o_4 < 0 = Nothing
+  | t0 >= 0 = Just t0
+  | t1 >= 0 = Just t1
+  | otherwise = Nothing
+  where
+    op = center - origin
+    b_o_2 = dot op direction
+    det_o_4 = (b_o_2 * b_o_2) - (dot op op) + (radius * radius)
+    t0 = b_o_2 - sqrt det_o_4
+    t1 = b_o_2 + sqrt det_o_4
 
 -- | Finds the closest intersection
 -- TODO: understand how I can make something cleaner than that !
