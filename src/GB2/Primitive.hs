@@ -4,6 +4,10 @@ module GB2.Primitive where
 -- accelerator, and Object may be something else than primitives (such as
 -- transform or aggregate of primitives)
 
+import Data.Foldable
+import Data.Maybe
+import Data.Function
+
 import GB2.Geometry
 import GB2.Material
 import GB2.Color
@@ -114,27 +118,21 @@ rayPrimitiveIntersectDistance (Ray origin direction) (Triangle v0 v1 v2)
 
     t = f * dot e2 q
 
+rayObjectIntersectDistance :: Ray -> Object -> Maybe (Float, It)
+rayObjectIntersectDistance ray object@(Object prim _) = case rayPrimitiveIntersectDistance ray prim of
+  Nothing -> Nothing
+  Just t -> Just (t, It point direction object normal)
+    where
+      point = (getRayOrigin ray) + (t `vmul2` (getRayDirection ray))
+      direction = - (getRayDirection ray)
+      normal = primitiveNormal prim point
+
 -- | Finds the closest intersection
--- TODO: understand how I can make something cleaner than that !
 intersectScene :: Scene
   -> Ray
   -> Maybe (Float, It)      -- ^ Returns the distance to the object and the intersection with the object
-intersectScene [] _ = Nothing
-intersectScene (object@(Object prim _):trail) ray =
-                case intersectScene trail ray of
-                   Nothing -> case rayPrimitiveIntersectDistance ray prim of
-                      Nothing -> Nothing
-                      Just t -> Just (t, It point direction object normal)
-                        where
-                          direction = - (getRayDirection ray)
-                          point = (getRayOrigin ray) + (t `vmul2` (getRayDirection ray))
-                          normal = primitiveNormal prim point
-                   Just (t, closestSphereIntersection) -> case rayPrimitiveIntersectDistance ray prim of
-                          Nothing -> Just (t, closestSphereIntersection)
-                          Just t2 -> if t < t2
-                                        then Just (t, closestSphereIntersection)
-                                        else Just (t2, It point direction object normal)
-                                          where
-                                            direction = - (getRayDirection ray)
-                                            point = (getRayOrigin ray) + (t2 `vmul2` (getRayDirection ray))
-                                            normal = primitiveNormal prim point
+intersectScene objects ray
+  | null allIt = Nothing
+  | otherwise = Just (minimumBy (compare `Data.Function.on` fst) allIt)
+  where
+    allIt = catMaybes $ fmap (rayObjectIntersectDistance ray) objects
