@@ -13,7 +13,7 @@ import GB2.Material
 import GB2.Color
 
 -- Types
-data Ray = Ray { getRayOrigin :: Vector, getRayDirection :: Vector } -- Origin / Direction
+data Ray = Ray { getRayOrigin :: Vector, getRayDirection :: Vector } deriving (Show) -- Origin / Direction
 
 -- | An object is a primitive with a material
 data Object = Object { getObjectPrimitive :: Primitive, getObjectMaterial :: Material }
@@ -149,5 +149,7 @@ hasOcclusion :: Scene
   -> Float -- ^ Intersection farther than this distance from the ray origin are ignored
   -> Bool -- ^ Returns True if an intersection exists
 hasOcclusion scene ray tMax = case intersectScene scene ray of
-  Just (t, _) -> (t - tMax) < (-epsilon)
+  Just (t, it) -> case (getObjectMaterial (getItObject it)) of
+                      Glass _ -> False
+                      _ ->  (t - tMax) < (-epsilon)
   Nothing -> False

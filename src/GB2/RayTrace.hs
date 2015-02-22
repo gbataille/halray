@@ -6,6 +6,9 @@ import GB2.Color
 import GB2.Material
 import GB2.Tonemap
 
+import Data.Maybe (fromMaybe)
+import Debug.Trace
+
 -- | Returns the energy transmitted by a given light at an intersection point
 directLighting :: Scene -> It -> Light -> Color
 directLighting scene it light
@@ -34,6 +37,17 @@ indirectLighting :: Scene -> It -> Light -> Color
 indirectLighting scene it light =
  case (getObjectMaterial (getItObject it)) of
       Diffuse _ -> color0
+      Glass _ -> 
+        trace ("refractRay: " ++ (show (fmap (radianceRay scene light) refractedRay))) (fromMaybe color0 (fmap (radianceRay scene light) refractedRay)) * (materialAlbedo mat)
+        where
+         obj = (getItObject it)
+         mat = (getObjectMaterial obj)
+         itNormal = (getItNormal it)
+         itRayDirToOrig = (getItDirToRayOrig it)
+         itPoint = (getItPoint it)
+         refractPoint = itPoint + (epsilon `vmul2` (-itNormal))
+         refractedRayDir = refract itNormal itRayDirToOrig 1.5
+         refractedRay = fmap (Ray refractPoint) refractedRayDir
       Mirror _ -> (materialAlbedo mat) * (radianceRay scene light rayFromMirror)
         where
          obj = (getItObject it)
@@ -49,6 +63,18 @@ indirectLighting scene it light =
 -- | Direction of the Mirror reflected ray
 reflect :: Normal -> Vector -> Vector
 reflect normal c = (normal `vmul` (dot normal c) `vmul` 2) - c
+
+-- | Direction of the refracted ray
+refract :: Normal -> Vector -> Float -> Maybe Vector
+refract normal i ior
+  | k < 0 = Nothing
+  | otherwise = Just (i' `vmul` ior' - normal' `vmul` (ior' * (dot normal' i') + sqrt(k)))
+    where
+     i' = -i
+     (ior', normal') = if (dot normal i') > 0
+                          then (ior, -normal)
+                          else (1.0 / ior, normal)
+     k = 1.0 - ior' * ior' * (1.0 - (dot normal' i') * (dot normal' i'))
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
