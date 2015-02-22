@@ -45,4 +45,4 @@ pixels2string pixels = unwords $ map color2string pixels
 
 -- Convert an image to ppm string
 image2ppm :: Image -> String
-image2ppm (width, height, pixels) = "P3\n" ++ show width ++ " " ++ show height ++ "\n255\n" ++ pixels2string pixels
+image2ppm (width, height, pixels) = "P3\n" ++ show width ++ " " ++ show height ++ "\n255\n" ++ pixels2string pixels ++ "\n"

@@ -29,8 +29,9 @@ Executable halray
   main-is:            Halray.hs
   default-language:   Haskell2010
   -- other-modules:
-  build-depends:      base >=4.7,
-                      halray
+  build-depends:      base >=4.7
+                      , process
+                      , halray
   ghc-options:        -Wall -O3
 
 Test-suite tests

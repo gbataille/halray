@@ -6,6 +6,9 @@ import GB2.Material
 import GB2.Color
 import GB2.RayTrace
 
+import System.Process
+import System.Exit (ExitCode(..))
+
 -- Scene
 -- Vec (50, 70, 81.6) // LIGHT.
 
@@ -36,6 +39,28 @@ main = do
     height = read (head $ tail args) :: Int
     spp = read (head . tail $ tail args) :: Int
     res = render width height spp makeDefaultScene makeDefaultLight
-    filename = "test.ppm"
+    ppmFilename = "test.ppm"
+    jgpFilename = "test.jpg"
 
-  writeFile filename $ image2ppm (width, height, res)
+  putStrLn ""
+  putStrLn "### Halray ###"
+  putStrLn ""
+  -- Creating the basic PPM file
+  writeFile ppmFilename $ image2ppm (width, height, res)
+  -- Tries to convert it to a JPG file
+  ret <- system "which convert"
+  case ret of
+       ExitSuccess -> do
+         putStrLn $ "ImageMagick (convert) is available, converting the generated image to a jpg called: " ++ jgpFilename
+         convRet <- system $ "convert " ++ ppmFilename ++ " " ++ jgpFilename
+         case convRet of
+              ExitFailure _ -> putStrLn "ERROR: Failed to convert the PPM into a JPG"
+              ExitSuccess -> do
+                rmRet <- system $ "rm " ++ ppmFilename
+                case rmRet of
+                     ExitFailure _ -> putStrLn "ERROR: Failed to delete the PPM file after conversion"
+                     ExitSuccess -> return ()
+       ExitFailure _ -> do
+         putStrLn "ImageMagick (convert) is not installed (or not in your PATH)."
+         putStrLn $ "The output is a raw PPM image called: " ++ ppmFilename
+         putStrLn "To get a JPG image, install ImageMagick"
