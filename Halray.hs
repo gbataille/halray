@@ -7,6 +7,7 @@ import GB2.Color
 import GB2.RayTrace
 
 import System.Process
+import System.IO (openFile, IOMode(..))
 import System.Exit (ExitCode(..))
 
 -- Scene
@@ -48,7 +49,10 @@ main = do
   -- Creating the basic PPM file
   writeFile ppmFilename $ image2ppm (width, height, res)
   -- Tries to convert it to a JPG file
-  ret <- system "which convert"
+  -- TODO: gbataille - Windows compatibility --> /dev/null ≣ NUL && which
+  devNull <- openFile "/dev/null" ReadWriteMode
+  (_, _, _, procHandle) <- createProcess (proc "which" ["convert"]) { std_out = (UseHandle devNull) }
+  ret <- waitForProcess procHandle
   case ret of
        ExitSuccess -> do
          putStrLn $ "ImageMagick (convert) is available, converting the generated image to a jpg called: " ++ jgpFilename
