@@ -7,13 +7,10 @@ import GB2.Material
 
 import Data.Maybe (isJust, fromJust)
 
-epsilon :: Float
-epsilon = 1
-
 -- | Returns the energy transmitted by a given light at an intersection point
 directLighting :: Scene -> It -> Light -> Color
 directLighting scene it light
-  | vectorsOnSameSideOfTheSurface && (not maskingObject) =
+  | vectorsOnSameSideOfTheSurface && not (hasOcclusion scene lightRay d) =
     ((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo)))
   | otherwise = color0
     where
@@ -24,10 +21,6 @@ directLighting scene it light
       d = sqrt d_square
 
       lightRay = Ray lightP (normalize lightDir)
-
-      mLightIntersect = intersectScene scene lightRay
-      (dItLight, _) = fromJust mLightIntersect
-      maskingObject = (isJust mLightIntersect) && ((dItLight - d) < -epsilon)
 
       material = (getObjectMaterial $ getItObject it)
       intersectP = (getItPoint it)

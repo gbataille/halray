@@ -136,3 +136,16 @@ intersectScene objects ray
   | otherwise = Just (minimumBy (compare `Data.Function.on` fst) allIt)
   where
     allIt = catMaybes $ fmap (rayObjectIntersectDistance ray) objects
+
+-- | Intersection epsilon to avoid self shadowing
+epsilon :: Float
+epsilon = 1
+
+-- | Finds if an intersection exists between the scene and a ray
+hasOcclusion :: Scene
+  -> Ray
+  -> Float -- ^ Intersection farther than this distance from the ray origin are ignored
+  -> Bool -- ^ Returns True if an intersection exists
+hasOcclusion scene ray tMax = case intersectScene scene ray of
+  Just (t, _) -> (tMax - t) < (-epsilon)
+  Nothing -> False
