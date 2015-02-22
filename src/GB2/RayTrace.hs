@@ -10,8 +10,12 @@ import Data.Maybe (fromMaybe)
 import Debug.Trace
 
 -- | Returns the energy transmitted by a given light at an intersection point
-directLighting :: Scene -> It -> Light -> Color
-directLighting scene it light
+directLighting :: Scene 
+               -> It 
+               -> Int          -- ^ depth (i.e. number of indirect rebounds)
+               -> Light 
+               -> Color
+directLighting scene it _ light
   | vectorsOnSameSideOfTheSurface && not (hasOcclusion scene lightRay d) =
     ((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo)))
   | otherwise = color0
@@ -33,12 +37,18 @@ directLighting scene it light
 
       vectorsOnSameSideOfTheSurface = sameSide incomingRay wo normalAtIntersect
 
-indirectLighting :: Scene -> It -> Light -> Color
-indirectLighting scene it light =
+indirectLighting :: Scene 
+                 -> It 
+                 -> Int         -- ^ depth (i.e. number of indirect rebounds)
+                 -> Light 
+                 -> Color
+indirectLighting scene it depth light =
  case (getObjectMaterial (getItObject it)) of
       Diffuse _ -> color0
       Glass _ -> 
-        trace ("refractRay: " ++ (show (fmap (radianceRay scene light) refractedRay))) (fromMaybe color0 (fmap (radianceRay scene light) refractedRay)) * (materialAlbedo mat)
+        trace ("depth: " ++ (show depth)) $
+        trace ("refractRayPoint: " ++ (show refractPoint)) $
+          (fromMaybe color0 (fmap (radianceRay scene light (depth + 1)) refractedRay)) * (materialAlbedo mat)
         where
          obj = (getItObject it)
          mat = (getObjectMaterial obj)
@@ -48,7 +58,7 @@ indirectLighting scene it light =
          refractPoint = itPoint + (epsilon `vmul2` (-itNormal))
          refractedRayDir = refract itNormal itRayDirToOrig 1.5
          refractedRay = fmap (Ray refractPoint) refractedRayDir
-      Mirror _ -> (materialAlbedo mat) * (radianceRay scene light rayFromMirror)
+      Mirror _ -> (materialAlbedo mat) * (radianceRay scene light (depth + 1) rayFromMirror)
         where
          obj = (getItObject it)
          mat = (getObjectMaterial obj)
@@ -78,10 +88,14 @@ refract normal i ior
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
-radianceRay :: Scene -> Light -> Ray -> Color
-radianceRay scene light ray = case intersectScene scene ray of
+radianceRay :: Scene 
+            -> Light 
+            -> Int      -- ^ depth (i.e. number of indirect rebounds)
+            -> Ray 
+            -> Color
+radianceRay scene light depth ray = case intersectScene scene ray of
   Just (_, intersect) ->
-    (directLighting scene intersect light) + (indirectLighting scene intersect light)
+    (directLighting scene intersect depth light) + (indirectLighting scene intersect depth light)
   Nothing -> color0
 
 radianceXY :: Scene          -- ^ Scene to render
@@ -90,7 +104,7 @@ radianceXY :: Scene          -- ^ Scene to render
            -> (Float, Float) -- ^ (x, y)
            -> Color
 radianceXY scene light spp coord =
-  (vmul2 (1.0 / (fromIntegral spp))) $ foldl (+) color0 [ radianceRay scene light (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
+  (vmul2 (1.0 / (fromIntegral spp))) $ foldl (+) color0 [ radianceRay scene light 0 (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
 
 -- Camera bullshit, we will need to improve this
 near :: Float
