@@ -4,13 +4,16 @@ module GB2.Geometry where
 -- Vector
 -- ####################################
 
--- Types
-data Vector = Vector Float Float Float -- x, y, z
+-- | 3D Vector with cartesian coordinates x y z
+data Vector = Vector Float Float Float
               deriving (Show, Eq)
 
-type Normal = Vector
-type Point = Vector
+type Normal = Vector      -- ^ A Vector representing a surface's normal direction
+type Point = Vector       -- ^ A Point in space (isomorphic to a vector)
 
+{- |
+ sum, subtraction, product are defined term by term in the Num class
+-}
 instance Num (Vector) where
    Vector x y z + Vector x' y' z' = Vector (x + x') (y + y') (z + z')
    Vector x y z - Vector x' y' z' = Vector (x - x') (y - y') (z - z')
@@ -25,23 +28,27 @@ vector0 :: Vector
 vector0 = Vector 0 0 0
 
 -- Operations
+-- | The mathematical norm (≣length) of a vector
 norm :: Vector -> Float
 norm (Vector x y z) = sqrt (x * x + y * y + z * z)
 
+-- | Normalize the vector (keeps its direction but has a norm of 1)
 normalize :: Vector -> Vector
 normalize (Vector x y z) = Vector (x / n) (y / n) (z / n) where n = norm (Vector x y z)
 
+-- | Dot product of 2 vectors (equals to the cosine of the angle between the 2 vectors)
 dot :: Vector -> Vector -> Float
 dot (Vector x y z) (Vector x' y' z') = x * x' + y * y' + z * z'
 
-cross :: Vector -> Vector-> Vector
+-- | Cross product of 2 vectors
+cross :: Vector -> Vector -> Vector
 cross (Vector x y z) (Vector x' y' z') = Vector (y * z' - z * y') (z * x' - x * z') (x * y' - y * x')
 
--- HOWTO: make vmul a cleaner operator, such as *
--- HOWTO make vmul a commutative operator without creating vmul2 ?
+-- | Multiplication of a vector by a scalar value, scalar second
 vmul :: Vector -> Float -> Vector
 vmul (Vector x y z) s = Vector (x * s) (y * s) (z * s)
 
+-- | Multiplication of a vector by a scalar value, scalar first
 vmul2 :: Float -> Vector -> Vector
 vmul2 = flip vmul
 
@@ -49,6 +56,7 @@ vmul2 = flip vmul
 -- Sphere
 -- ####################################
 
+-- | A Primitive is a 3D structure
 data Primitive = Sphere { getSphereRadius :: Float, getSphereCenter :: Point } -- Radius, center
                 | Triangle Point Point Point -- Three coordinates of the triangle
                 deriving (Show)
@@ -60,13 +68,13 @@ type Sphere = Primitive
 -- Space geometry
 -- ####################################
 
-{-
+{- |
  Takes 2 vector leaving (or hitting) a surface from a common point and the 
  normal to the surface at that point.
 
  Returns True if both vectors are on the same side of the surface.
 
- Law: both vectors and the normal join at the same point on the surface
+ __Law:__ both vectors and the normal join at the same point on the surface
 -}
 sameSide :: Vector -- ^ outgoing vector 1
   -> Vector        -- ^ outgoing vector 2
