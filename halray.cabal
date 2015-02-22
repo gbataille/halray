@@ -40,7 +40,8 @@ Test-suite tests
   default-extensions: OverloadedStrings
   hs-source-dirs:     test
   main-is:            Halray_test.hs
-  other-modules:      Tests.GB2.Geometry
+  other-modules:      Tests.GB2.Geometry,
+                      Tests.GB2.Primitive
   build-depends:      base,
                       halray,
                       HTF >= 0.10
