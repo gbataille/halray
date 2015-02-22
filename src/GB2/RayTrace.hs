@@ -29,11 +29,32 @@ directLighting scene it light
 
       vectorsOnSameSideOfTheSurface = sameSide incomingRay wo normalAtIntersect
 
+indirectLighting :: Scene -> It -> Light -> Color
+indirectLighting scene it light =
+ case (getObjectMaterial (getItObject it)) of
+      Diffuse _ -> color0
+      Mirror _ -> (materialAlbedo mat) * (radianceRay scene light rayFromMirror)
+        where
+         obj = (getItObject it)
+         mat = (getObjectMaterial obj)
+         itPoint = (getItPoint it)
+         itRayDirToOrig = (getItDirToRayOrig it)
+         itNormal = (getItNormal it)
+         reflectedDir = reflect itNormal itRayDirToOrig
+         -- We add an epsilon to move the point "away" from the sphere (floating point issues)
+         reflectPoint = itPoint + (epsilon `vmul2` itNormal)
+         rayFromMirror = Ray reflectPoint reflectedDir
+
+-- | Direction of the Mirror reflected ray
+reflect :: Normal -> Vector -> Vector
+reflect normal c = (normal `vmul` (dot normal c) `vmul` 2) - c
+
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
 radianceRay :: Scene -> Light -> Ray -> Color
 radianceRay scene light ray = case intersectScene scene ray of
-  Just (_, intersect) -> directLighting scene intersect light
+  Just (_, intersect) ->
+    (directLighting scene intersect light) + (indirectLighting scene intersect light)
   Nothing -> color0
 
 radianceXY :: Scene          -- ^ Scene to render
