@@ -33,6 +33,7 @@ test_negate = assertEqual (negate (Vector (-5) 0 3)) (Vector 5 0 (-3))
 
 -- norm
 test_norm = assertEqual (norm (Vector 4 3 0)) 5
+test_normSquared = assertEqual (normSquared (Vector (-4) 3 2)) 29
 
 -- normalize
 test_normalize0 = assertEqual (normalize (Vector 5 0 0)) (Vector 1 0 0)

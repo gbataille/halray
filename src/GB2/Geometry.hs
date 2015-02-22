@@ -30,7 +30,11 @@ vector0 = Vector 0 0 0
 -- Operations
 -- | The mathematical norm (≣length) of a vector
 norm :: Vector -> Float
-norm (Vector x y z) = sqrt (x * x + y * y + z * z)
+norm vec = sqrt $ normSquared vec
+
+-- | The mathematical norm (≣length) squared of a vector
+normSquared :: Vector -> Float
+normSquared (Vector x y z) = x * x + y * y + z * z
 
 -- | Normalize the vector (keeps its direction but has a norm of 1)
 normalize :: Vector -> Vector
