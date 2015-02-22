@@ -19,13 +19,25 @@ import System.Exit (ExitCode(..))
 -- Scene intersect
 makeDefaultScene :: Scene
 makeDefaultScene = [
-    Object (Sphere 100000.0 $ Vector (100000.0 + 1.0) 40.8 81.6) (Diffuse $ Vector 1.0 0.0 0),	-- Left
-    Object (Sphere 100000.0 $ Vector (-100000.0 + 99.0) 40.8 81.6) (Diffuse $ Vector 0 0 1),	-- Rght
-    Object (Sphere 100000.0 $ Vector 50 40.8 100000) (Diffuse $ Vector 1 0 1),	-- Back
-    Object (Sphere 100000.0 $ Vector 50 100000.0 81.6) (Diffuse $ Vector 1 1 0),	-- Bottom
-    Object (Sphere 100000.0 $ Vector 50 (-100000.0 + 81.6) 81.6) (Diffuse $ Vector 0 0 1),	-- Top
-    Object (Sphere 16.5 $ Vector 27 16.5 47) (Mirror $ Vector 1 1 1),	-- Mirror
-    Object (Sphere 16.5 $ Vector 73 16.5 78) (Diffuse $ Vector 1 1 1)	-- Glass
+    -- Left Wall
+    Object (Triangle (Vector 0 0 0) (Vector 0 100 0) (Vector 0 0 150)) (Diffuse $ Vector 1.0 0 0),
+    Object (Triangle (Vector 0 100 150) (Vector 0 100 0) (Vector 0 0 150)) (Diffuse $ Vector 1.0 0 0),
+    -- Right Wall
+    Object (Triangle (Vector 100 0 0) (Vector 100 100 0) (Vector 100 0 150)) (Diffuse $ Vector 0 0 1),
+    Object (Triangle (Vector 100 100 150) (Vector 100 100 0) (Vector 100 0 150)) (Diffuse $ Vector 0 0 1),
+    -- Back wall
+    Object (Triangle (Vector 0 0 0) (Vector 100 0 0) (Vector 100 100 0)) (Diffuse $ Vector 1 0 1),
+    Object (Triangle (Vector 0 0 0) (Vector 0 100 0) (Vector 100 100 0)) (Diffuse $ Vector 1 0 1),
+    -- Bottom Floor
+    Object (Triangle (Vector 0 0 0) (Vector 100 0 0) (Vector 100 0 150)) (Diffuse $ Vector 1 1 0),
+    Object (Triangle (Vector 0 0 0) (Vector 0 0 150) (Vector 100 0 150)) (Diffuse $ Vector 1 1 0),
+    -- Top Ceiling
+    Object (Triangle (Vector 0 90 0) (Vector 100 90 0) (Vector 0 90 150)) (Diffuse $ Vector 0 1 1),
+    Object (Triangle (Vector 100 90 150) (Vector 100 90 0) (Vector 0 90 150)) (Diffuse $ Vector 0 1 1),
+    -- Mirror left Sphere
+    Object (Sphere 16.5 $ Vector 27 16.5 47) (Mirror $ Vector 1 1 1),
+    -- Opaque Right Sphere
+    Object (Sphere 16.5 $ Vector 73 16.5 78) (Diffuse $ Vector 1 1 1)
   ]
 
 makeDefaultLight :: Light

@@ -29,6 +29,12 @@ data It = It {
 
 data Light = Light { getLightPosition :: Point, getLightColor :: Color }
 
+-- Constants
+
+-- | Intersection epsilon to avoid self shadowing
+epsilon :: Float
+epsilon = 0.001
+
 -- Operations
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
@@ -136,10 +142,6 @@ intersectScene objects ray
   | otherwise = Just (minimumBy (compare `Data.Function.on` fst) allIt)
   where
     allIt = catMaybes $ fmap (rayObjectIntersectDistance ray) objects
-
--- | Intersection epsilon to avoid self shadowing
-epsilon :: Float
-epsilon = 1
 
 -- | Finds if an intersection exists between the scene and a ray
 hasOcclusion :: Scene
