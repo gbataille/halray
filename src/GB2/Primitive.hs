@@ -4,6 +4,10 @@ module GB2.Primitive where
 -- accelerator, and Object may be something else than primitives (such as
 -- transform or aggregate of primitives)
 
+import Data.Foldable
+import Data.Maybe
+import Data.Function
+
 import GB2.Geometry
 import GB2.Material
 import GB2.Color
@@ -11,10 +15,6 @@ import GB2.Color
 -- Rays
 data Ray = Ray { getRayOrigin :: Vector, getRayDirection :: Vector } -- Origin / Direction
 -- TODO: check how the hell I can be explicit and object field name
-
--- Primitives
-type Primitive = Sphere
--- TODO: latter, set triangles, aabb, ...
 
 -- Objects
 -- An object is a primitive with a material
@@ -33,7 +33,9 @@ data Light = Light { getLightPosition :: Point, getLightColor :: Color }
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
   -> Normal
+
 primitiveNormal (Sphere _ center) point = normalize (point - center)
+primitiveNormal (Triangle p0 p1 p2) _ = normalize $ cross (p1 - p0) (p2 - p0)
 
 {-|
 Computes the intersection between a ray and a sphere
@@ -77,49 +79,60 @@ With a similar method, we get
 t1 = b_o_2 + sqrt(det_o_4)
 
 -}
-raySphereIntersectDistance :: Ray       -- ^ a Ray with a normalized direction
-  -> Sphere                             -- ^ the Sphere we are trying to intersect the ray with
+rayPrimitiveIntersectDistance :: Ray    -- ^ a Ray with a normalized direction
+  -> Primitive                          -- ^ the Primitive we are trying to intersect the ray with
   -> Maybe Float                        -- ^ the distance between the ray origin and the intersection point
-raySphereIntersectDistance (Ray origin direction) (Sphere radius center) =
-                      if det_o_4 < 0
-                         then Nothing
-                         else
-                           if t0 >= 0
-                           then Just t0
-                           else if t1 >= 0
-                                   then Just t1
-                                   else Nothing
-                      where
-                            op = center - origin
-                            b_o_2 = dot op direction
-                            det_o_4 = (b_o_2 * b_o_2) - (dot op op) + (radius * radius)
-                            t0 = b_o_2 - sqrt det_o_4
-                            t1 = b_o_2 + sqrt det_o_4
 
+rayPrimitiveIntersectDistance (Ray origin direction) (Sphere radius center)
+  | det_o_4 < 0 = Nothing
+  | t0 >= 0 = Just t0
+  | t1 >= 0 = Just t1
+  | otherwise = Nothing
+  where
+    op = center - origin
+    b_o_2 = dot op direction
+    det_o_4 = (b_o_2 * b_o_2) - (dot op op) + (radius * radius)
+    t0 = b_o_2 - sqrt det_o_4
+    t1 = b_o_2 + sqrt det_o_4
 
+rayPrimitiveIntersectDistance (Ray origin direction) (Triangle v0 v1 v2)
+  | abs a < 0.00001 = Nothing
+  | u < 0 || u > 1 = Nothing
+  | v < 0 || (u + v) > 1 = Nothing
+  | t < 0 = Nothing
+  | otherwise = Just t
+  where
+    e1 = v1 - v0
+    e2 = v2 - v0
 
+    h = cross direction e2
+    a = dot e1 h
+
+    f = 1 / a
+    s = origin - v0
+
+    u = f * dot s h
+
+    q = cross s e1
+    v = f * dot direction q
+
+    t = f * dot e2 q
+
+rayObjectIntersectDistance :: Ray -> Object -> Maybe (Float, It)
+rayObjectIntersectDistance ray object@(Object prim _) = case rayPrimitiveIntersectDistance ray prim of
+  Nothing -> Nothing
+  Just t -> Just (t, It point direction object normal)
+    where
+      point = (getRayOrigin ray) + (t `vmul2` (getRayDirection ray))
+      direction = - (getRayDirection ray)
+      normal = primitiveNormal prim point
 
 -- | Finds the closest intersection
--- TODO: understand how I can make something cleaner than that !
-intersectScene :: Scene 
-  -> Ray 
+intersectScene :: Scene
+  -> Ray
   -> Maybe (Float, It)      -- ^ Returns the distance to the object and the intersection with the object
-intersectScene [] _ = Nothing
-intersectScene (object@(Object prim _):trail) ray =
-                case intersectScene trail ray of
-                   Nothing -> case raySphereIntersectDistance ray prim of
-                      Nothing -> Nothing
-                      Just t -> Just (t, It point direction object normal)
-                        where
-                          direction = - (getRayDirection ray)
-                          point = (getRayOrigin ray) + (t `vmul2` (getRayDirection ray))
-                          normal = primitiveNormal prim point
-                   Just (t, closestSphereIntersection) -> case raySphereIntersectDistance ray prim of
-                          Nothing -> Just (t, closestSphereIntersection)
-                          Just t2 -> if t < t2
-                                        then Just (t, closestSphereIntersection)
-                                        else Just (t2, It point direction object normal)
-                                          where
-                                            direction = - (getRayDirection ray)
-                                            point = (getRayOrigin ray) + (t2 `vmul2` (getRayDirection ray))
-                                            normal = primitiveNormal prim point
+intersectScene objects ray
+  | null allIt = Nothing
+  | otherwise = Just (minimumBy (compare `Data.Function.on` fst) allIt)
+  where
+    allIt = catMaybes $ fmap (rayObjectIntersectDistance ray) objects
