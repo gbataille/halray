@@ -147,5 +147,5 @@ hasOcclusion :: Scene
   -> Float -- ^ Intersection farther than this distance from the ray origin are ignored
   -> Bool -- ^ Returns True if an intersection exists
 hasOcclusion scene ray tMax = case intersectScene scene ray of
-  Just (t, _) -> (tMax - t) < (-epsilon)
+  Just (t, _) -> (t - tMax) < (-epsilon)
   Nothing -> False
