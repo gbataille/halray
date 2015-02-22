@@ -5,8 +5,6 @@ import GB2.Geometry
 import GB2.Color
 import GB2.Material
 
-import Data.Maybe (isJust, fromJust)
-
 -- | Returns the energy transmitted by a given light at an intersection point
 directLighting :: Scene -> It -> Light -> Color
 directLighting scene it light
@@ -34,14 +32,9 @@ directLighting scene it light
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
 radianceRay :: Scene -> Light -> Ray -> Color
-radianceRay scene light ray
-  | intersectExists = directLighting scene intersect light
-  | otherwise = color0
-    where
-     mIntersectDetails = intersectScene scene ray
-     intersectExists = isJust mIntersectDetails
-     (_, intersect) = fromJust mIntersectDetails
-
+radianceRay scene light ray = case intersectScene scene ray of
+  Just (_, intersect) -> directLighting scene intersect light
+  Nothing -> color0
 
 radianceXY :: Scene          -- ^ Scene to render
            -> Light          -- ^ Light
