@@ -4,6 +4,7 @@ import GB2.Primitive
 import GB2.Geometry
 import GB2.Color
 import GB2.Material
+import GB2.Tonemap
 
 -- | Returns the energy transmitted by a given light at an intersection point
 directLighting :: Scene -> It -> Light -> Color
@@ -121,6 +122,6 @@ render :: Int       -- ^ width
        -> [Color]
 render width height spp scene light =
     (fmap
-      (radianceXY scene light spp)
+      (gamma22 . (radianceXY scene light spp))
       (coordListPlane width height)
     )

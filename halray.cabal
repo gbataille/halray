@@ -24,6 +24,7 @@ Library
                       , GB2.Primitive
                       , GB2.Material
                       , GB2.RayTrace
+                      , GB2.Tonemap
 
 Executable halray
   main-is:            Halray.hs

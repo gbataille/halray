@@ -41,7 +41,7 @@ makeDefaultScene = [
   ]
 
 makeDefaultLight :: Light
-makeDefaultLight = Light (Vector 50 70 81.6) (Vector 20000 20000 20000)
+makeDefaultLight = Light (Vector 50 70 81.6) (Vector 15000 15000 15000)
 
 -- | 'main' runs the main program
 main :: IO ()
