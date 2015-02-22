@@ -12,24 +12,24 @@ import GB2.Geometry
 import GB2.Material
 import GB2.Color
 
--- Rays
+-- Types
 data Ray = Ray { getRayOrigin :: Vector, getRayDirection :: Vector } -- Origin / Direction
--- TODO: check how the hell I can be explicit and object field name
 
--- Objects
--- An object is a primitive with a material
+-- | An object is a primitive with a material
 data Object = Object { getObjectPrimitive :: Primitive, getObjectMaterial :: Material }
 
--- Scene
 type Scene = [Object]
+
 data It = It {
         getItPoint :: Point,            -- ^ Intersection point
         getItDirToRayOrig :: Vector,    -- ^ Normalized vector pointing to the incoming ray origin
         getItObject :: Object,          -- ^ Object intersected
         getItNormal :: Vector           -- ^ Normal to the surface at the intersection point
         } -- Float is the t of intersection (distance between ray origin and light)
+
 data Light = Light { getLightPosition :: Point, getLightColor :: Color }
 
+-- Operations
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
   -> Normal

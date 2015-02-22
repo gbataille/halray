@@ -5,12 +5,17 @@ import GB2.Geometry
 import GB2.Color
 import GB2.Material
 
+import Data.Maybe (isJust, fromJust)
+
+epsilon :: Float
+epsilon = 1
+
 -- | Returns the energy transmitted by a given light at an intersection point
 intersectToEnergy :: It -> Light -> Color
 intersectToEnergy it light
-  | sameSide incomingRay dirRay normalAtIntersect =
+  | vectorsOnSameSideOfTheSurface =
     ((bsdf material) * (getLightColor light) `vmul` (1.0/(d**2) )`vmul` (abs (dot normalAtIntersect dirRay)))
-  | otherwise = Vector 0 0 0
+  | otherwise = color0
     where
       material = (getObjectMaterial $ getItObject it)
       intersectP = (getItPoint it)
@@ -19,20 +24,33 @@ intersectToEnergy it light
       normalAtIntersect = (getItNormal it)
       d = norm (intersectP - (getLightPosition light))
 
+      vectorsOnSameSideOfTheSurface = sameSide incomingRay dirRay normalAtIntersect
+
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
 radianceRay :: Scene -> Light -> Ray -> Color
-radianceRay scene light ray = case intersectScene scene ray of
-                                Nothing -> Vector 0 0 0
-                                Just (_, intersect) -> intersectToEnergy intersect light
+radianceRay scene light ray
+  | intersectExists && (not maskingObject) = intersectToEnergy intersect light
+  | otherwise = color0
+    where
+     mIntersectDetails = intersectScene scene ray
+     intersectExists = isJust mIntersectDetails
+     (_, intersect) = fromJust mIntersectDetails
 
-radianceXY :: Scene       -- ^ Scene to render
-           -> Light       -- ^ Light
-           -> Int         -- ^ number of samples
-           -> (Float, Float)  -- ^ (x, y)
+     intersectP = (getItPoint intersect)
+     d = norm (intersectP - (getLightPosition light))
+     lightRay = Ray (getLightPosition light) (normalize ((getItPoint intersect) - (getLightPosition light)))
+     mLightIntersect = intersectScene scene lightRay
+     (dItLight, _) = fromJust mLightIntersect
+     maskingObject = (isJust mLightIntersect) && ((dItLight - d) < -epsilon)
+
+radianceXY :: Scene          -- ^ Scene to render
+           -> Light          -- ^ Light
+           -> Int            -- ^ number of samples
+           -> (Float, Float) -- ^ (x, y)
            -> Color
-radianceXY scene light spp coord = 
-  (vmul2 (1.0 / (fromIntegral spp))) $ foldl (+) (Vector 0 0 0) [ radianceRay scene light (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
+radianceXY scene light spp coord =
+  (vmul2 (1.0 / (fromIntegral spp))) $ foldl (+) color0 [ radianceRay scene light (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
 
 -- Camera bullshit, we will need to improve this
 near :: Float

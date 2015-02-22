@@ -3,9 +3,10 @@ module GB2.Material where
 import GB2.Color
 import GB2.Geometry
 
--- Materials
+-- Types
 data Material = Diffuse Color | Mirror Color
 
+-- Operations
 materialAlbedo :: Material -> Color
 materialAlbedo (Diffuse color) = color
 materialAlbedo (Mirror color) = color

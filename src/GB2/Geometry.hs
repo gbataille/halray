@@ -4,6 +4,7 @@ module GB2.Geometry where
 -- Vector
 -- ####################################
 
+-- Types
 data Vector = Vector Float Float Float -- x, y, z
               deriving (Show, Eq)
 
@@ -19,6 +20,11 @@ instance Num (Vector) where
    fromInteger _ = error "ERROR: fromInteger :: t -> Vector is called when it should not"
    negate (Vector x y z) = Vector (-x) (-y) (-z)
 
+-- Constants
+vector0 :: Vector
+vector0 = Vector 0 0 0
+
+-- Operations
 norm :: Vector -> Float
 norm (Vector x y z) = sqrt (x * x + y * y + z * z)
 

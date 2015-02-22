@@ -2,6 +2,7 @@ module GB2.Color
 (
     Color,
     Image,
+    color0,
     readColor,
     image2ppm -- dump and image to disk
 )
@@ -15,6 +16,10 @@ import GB2.Geometry
 type Color = Vector
 -- The pixels are stored in a flat array of width * height
 type Image = (Int, Int, [Color]) -- Width, Height, Pixels
+
+-- Constants
+color0 :: Color
+color0 = vector0
 
 -- | In the context of ray tracing, a computation that "failed" i.e. did
 -- not bring energy means actually rendering a black color
