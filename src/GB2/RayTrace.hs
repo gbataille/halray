@@ -11,40 +11,44 @@ epsilon :: Float
 epsilon = 1
 
 -- | Returns the energy transmitted by a given light at an intersection point
-intersectToEnergy :: It -> Light -> Color
-intersectToEnergy it light
-  | vectorsOnSameSideOfTheSurface =
-    ((bsdf material) * (getLightColor light) `vmul` (1.0/(d**2) )`vmul` (abs (dot normalAtIntersect dirRay)))
+directLighting :: Scene -> It -> Light -> Color
+directLighting scene it light
+  | vectorsOnSameSideOfTheSurface && (not maskingObject) =
+    ((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo)))
   | otherwise = color0
     where
+      lightP = getLightPosition light
+      lightDir = vectorFromPToP lightP intersectP
+
+      d_square = normSquared lightDir
+      d = sqrt d_square
+
+      lightRay = Ray lightP (normalize lightDir)
+
+      mLightIntersect = intersectScene scene lightRay
+      (dItLight, _) = fromJust mLightIntersect
+      maskingObject = (isJust mLightIntersect) && ((dItLight - d) < -epsilon)
+
       material = (getObjectMaterial $ getItObject it)
       intersectP = (getItPoint it)
       incomingRay = (getItDirToRayOrig it)
-      dirRay = normalize (vectorFromPToP intersectP (getLightPosition light))
       normalAtIntersect = (getItNormal it)
-      d = norm (vectorFromPToP (getLightPosition light) intersectP)
 
-      vectorsOnSameSideOfTheSurface = sameSide incomingRay dirRay normalAtIntersect
+      wo = -(normalize lightDir)
+
+      vectorsOnSameSideOfTheSurface = sameSide incomingRay wo normalAtIntersect
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
 radianceRay :: Scene -> Light -> Ray -> Color
 radianceRay scene light ray
-  | intersectExists && (not maskingObject) = intersectToEnergy intersect light
+  | intersectExists = directLighting scene intersect light
   | otherwise = color0
     where
      mIntersectDetails = intersectScene scene ray
      intersectExists = isJust mIntersectDetails
      (_, intersect) = fromJust mIntersectDetails
 
-     intersectP = (getItPoint intersect)
-     d = norm (vectorFromPToP (getLightPosition light) intersectP)
-     lightRay = Ray (getLightPosition light) (normalize (
-                    vectorFromPToP (getLightPosition light) (getItPoint intersect)
-                    ))
-     mLightIntersect = intersectScene scene lightRay
-     (dItLight, _) = fromJust mLightIntersect
-     maskingObject = (isJust mLightIntersect) && ((dItLight - d) < -epsilon)
 
 radianceXY :: Scene          -- ^ Scene to render
            -> Light          -- ^ Light
