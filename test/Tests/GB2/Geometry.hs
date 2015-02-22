@@ -18,6 +18,10 @@ instance Arbitrary Vector where
 prop_vecAddZero :: Vector -> Bool
 prop_vecAddZero v = v == (v + (Vector 0 0 0))
 
+prop_vecBetween2Points :: Point -> Point -> Bool
+prop_vecBetween2Points p1@(Vector a b c) p2@(Vector a' b' c') =
+    (vectorFromPToP p1 p2) == Vector (a' - a) (b' - b) (c' - c)
+
 -- ##### HUnit #####
 -- Num instance
 test_simpleAdd = assertEqual ((Vector 1 2 3) + (Vector 3 2 1)) (Vector 4.0 4.0 4.0)
@@ -47,6 +51,9 @@ test_cross1 = assertEqual ((Vector 1 0 0) `cross` (Vector 0 1 0)) (Vector 0 0 1)
 test_cross2 = assertEqual ((Vector 0 1 0) `cross` (Vector 0 0 1)) (Vector 1 0 0)
 test_cross3 = assertEqual ((Vector 0 0 2) `cross` (Vector 1 0 0)) (Vector 0 2 0)
 
+-- vectorFromPointToPoint
+test_vectorFromPToP1 = assertEqual (vectorFromPToP (Vector 0 0 0) (Vector 1 1 1)) (Vector 1 1 1)
+test_vectorFromPToP2 = assertEqual (vectorFromPToP (Vector 3 (-4) 10) (Vector 6 4 (-3))) (Vector 3 8 (-13))
 
 -- #####################################
 -- Sphere Tests

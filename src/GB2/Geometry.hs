@@ -52,6 +52,12 @@ vmul (Vector x y z) s = Vector (x * s) (y * s) (z * s)
 vmul2 :: Float -> Vector -> Vector
 vmul2 = flip vmul
 
+-- | Return a vector pointing from the origin to the destination
+vectorFromPToP :: Point       -- ^ Point of origin
+               -> Point       -- ^ Point of destination
+               -> Vector      -- ^ Vector linking the 2 points
+vectorFromPToP origin destination = destination - origin
+
 -- ####################################
 -- Sphere
 -- ####################################

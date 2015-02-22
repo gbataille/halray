@@ -20,9 +20,9 @@ intersectToEnergy it light
       material = (getObjectMaterial $ getItObject it)
       intersectP = (getItPoint it)
       incomingRay = (getItDirToRayOrig it)
-      dirRay = normalize ((getLightPosition light) - intersectP)
+      dirRay = normalize (vectorFromPToP intersectP (getLightPosition light))
       normalAtIntersect = (getItNormal it)
-      d = norm (intersectP - (getLightPosition light))
+      d = norm (vectorFromPToP (getLightPosition light) intersectP)
 
       vectorsOnSameSideOfTheSurface = sameSide incomingRay dirRay normalAtIntersect
 
@@ -38,8 +38,10 @@ radianceRay scene light ray
      (_, intersect) = fromJust mIntersectDetails
 
      intersectP = (getItPoint intersect)
-     d = norm (intersectP - (getLightPosition light))
-     lightRay = Ray (getLightPosition light) (normalize ((getItPoint intersect) - (getLightPosition light)))
+     d = norm (vectorFromPToP (getLightPosition light) intersectP)
+     lightRay = Ray (getLightPosition light) (normalize (
+                    vectorFromPToP (getLightPosition light) (getItPoint intersect)
+                    ))
      mLightIntersect = intersectScene scene lightRay
      (dItLight, _) = fromJust mLightIntersect
      maskingObject = (isJust mLightIntersect) && ((dItLight - d) < -epsilon)
