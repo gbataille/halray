@@ -6,9 +6,6 @@ import GB2.Color
 import GB2.Material
 import GB2.Tonemap
 
-import Data.Maybe (fromMaybe)
-import Debug.Trace
-
 -- | Returns the energy transmitted by a given light at an intersection point
 directLighting :: Scene 
                -> It 
@@ -45,19 +42,24 @@ indirectLighting :: Scene
 indirectLighting scene it depth light =
  case (getObjectMaterial (getItObject it)) of
       Diffuse _ -> color0
-      Glass _ -> 
-        trace ("depth: " ++ (show depth)) $
-        trace ("refractRayPoint: " ++ (show refractPoint)) $
-          (fromMaybe color0 (fmap (radianceRay scene light (depth + 1)) refractedRay)) * (materialAlbedo mat)
+
+      Glass _ ior -> 
+        case refractedRayDir of
+             Nothing -> color0
+             Just direction -> 
+               (materialAlbedo mat) * (radianceRay scene light (depth + 1) refractedRay)
+                 where
+                  obj = (getItObject it)
+                  mat = (getObjectMaterial obj)
+                  itPoint = (getItPoint it)
+                  refractPoint = itPoint + (epsilon `vmul2` direction)
+                  refractedRay = Ray refractPoint direction
+
         where
-         obj = (getItObject it)
-         mat = (getObjectMaterial obj)
          itNormal = (getItNormal it)
          itRayDirToOrig = (getItDirToRayOrig it)
-         itPoint = (getItPoint it)
-         refractPoint = itPoint + (epsilon `vmul2` (-itNormal))
-         refractedRayDir = refract itNormal itRayDirToOrig 1.5
-         refractedRay = fmap (Ray refractPoint) refractedRayDir
+         refractedRayDir = refract itNormal itRayDirToOrig ior
+
       Mirror _ -> (materialAlbedo mat) * (radianceRay scene light (depth + 1) rayFromMirror)
         where
          obj = (getItObject it)
@@ -67,7 +69,7 @@ indirectLighting scene it depth light =
          itNormal = (getItNormal it)
          reflectedDir = reflect itNormal itRayDirToOrig
          -- We add an epsilon to move the point "away" from the sphere (floating point issues)
-         reflectPoint = itPoint + (epsilon `vmul2` itNormal)
+         reflectPoint = itPoint + (epsilon `vmul2` reflectedDir)
          rayFromMirror = Ray reflectPoint reflectedDir
 
 -- | Direction of the Mirror reflected ray
