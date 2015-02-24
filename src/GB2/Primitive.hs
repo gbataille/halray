@@ -39,7 +39,6 @@ epsilon = 0.01
 primitiveNormal :: Primitive    -- ^ The surface under study
   -> Point                      -- ^ The point on which the normal is to be computed
   -> Normal
-
 primitiveNormal (Sphere _ center) point = normalize (point - center)
 primitiveNormal (Triangle p0 p1 p2) _ = normalize $ cross (p1 - p0) (p2 - p0)
 

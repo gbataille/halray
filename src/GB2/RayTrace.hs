@@ -6,12 +6,13 @@ import GB2.Color
 import GB2.Material
 import GB2.Tonemap
 
--- | Returns the energy transmitted by a given light at an intersection point
-directLighting :: Scene 
-               -> It 
+-- | Returns the energy transmitted by a given light at an intersection point. No more than 10 rebounds
+directLighting :: Scene
+               -> It
                -> Int          -- ^ depth (i.e. number of indirect rebounds)
-               -> Light 
+               -> Light
                -> Color
+directLighting _ _ 10 _ = color0
 directLighting scene it _ light
   | vectorsOnSameSideOfTheSurface && not (hasOcclusion scene lightRay d) =
     ((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo)))
@@ -34,31 +35,46 @@ directLighting scene it _ light
 
       vectorsOnSameSideOfTheSurface = sameSide incomingRay wo normalAtIntersect
 
-indirectLighting :: Scene 
-                 -> It 
+-- | indirectLighting calculation : no more than 10 rebounds
+indirectLighting :: Scene
+                 -> It
                  -> Int         -- ^ depth (i.e. number of indirect rebounds)
-                 -> Light 
+                 -> Light
                  -> Color
+indirectLighting _ _ 10 _ = color0
 indirectLighting scene it depth light =
  case (getObjectMaterial (getItObject it)) of
       Diffuse _ -> color0
 
-      Glass _ ior -> 
-        case refractedRayDir of
+      Glass _ ior ->
+        (materialAlbedo mat) *
+        (
+         (fresnel `vmul2` reflectedEnergy)
+         + ((1 - fresnel) `vmul2` case refractedRayDir of
              Nothing -> color0
-             Just direction -> 
-               (materialAlbedo mat) * (radianceRay scene light (depth + 1) refractedRay)
+             Just direction ->
+               (radianceRay scene light (depth + 1) refractedRay)
                  where
-                  obj = (getItObject it)
-                  mat = (getObjectMaterial obj)
-                  itPoint = (getItPoint it)
                   refractPoint = itPoint + (epsilon `vmul2` direction)
                   refractedRay = Ray refractPoint direction
+         )
+        )
 
         where
+         obj = (getItObject it)
+         mat = (getObjectMaterial obj)
          itNormal = (getItNormal it)
          itRayDirToOrig = (getItDirToRayOrig it)
+         itPoint = (getItPoint it)
+         fresnel = fresnelR itNormal itRayDirToOrig ior
+         -- Refraction
          refractedRayDir = refract itNormal itRayDirToOrig ior
+         -- Reflection
+         reflectedDir = reflect itNormal itRayDirToOrig
+         -- We add an epsilon to move the point "away" from the sphere (floating point issues)
+         reflectPoint = itPoint + (epsilon `vmul2` reflectedDir)
+         rayFromMirror = Ray reflectPoint reflectedDir
+         reflectedEnergy = (radianceRay scene light (depth + 1) rayFromMirror)
 
       Mirror _ -> (materialAlbedo mat) * (radianceRay scene light (depth + 1) rayFromMirror)
         where
@@ -72,28 +88,12 @@ indirectLighting scene it depth light =
          reflectPoint = itPoint + (epsilon `vmul2` reflectedDir)
          rayFromMirror = Ray reflectPoint reflectedDir
 
--- | Direction of the Mirror reflected ray
-reflect :: Normal -> Vector -> Vector
-reflect normal c = (normal `vmul` (dot normal c) `vmul` 2) - c
-
--- | Direction of the refracted ray
-refract :: Normal -> Vector -> Float -> Maybe Vector
-refract normal i ior
-  | k < 0 = Nothing
-  | otherwise = Just (i' `vmul` ior' - normal' `vmul` (ior' * (dot normal' i') + sqrt(k)))
-    where
-     i' = -i
-     (ior', normal') = if (dot normal i') > 0
-                          then (ior, -normal)
-                          else (1.0 / ior, normal)
-     k = 1.0 - ior' * ior' * (1.0 - (dot normal' i') * (dot normal' i'))
-
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
-radianceRay :: Scene 
-            -> Light 
+radianceRay :: Scene
+            -> Light
             -> Int      -- ^ depth (i.e. number of indirect rebounds)
-            -> Ray 
+            -> Ray
             -> Color
 radianceRay scene light depth ray = case intersectScene scene ray of
   Just (_, intersect) ->
