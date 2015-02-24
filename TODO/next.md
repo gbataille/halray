@@ -1,20 +1,26 @@
-# Glass
-## Change sphere on the right
+# Glass - stochastic
 
-## reflection
-refraction + reflection
-facteur entre les 2 dépend de l'incidence -> facteur de Fresnel
-equation de Schlick https://en.wikipedia.org/wiki/Schlick%27s_approximation
-reflection * r
-refraction * (1 - r)
+On calcule aléatoirement soit la refraction soit la reflexion
 
-remove direct lighting
+num aléatoire (compare à 0,5) seulement si on est dans un cas de refraction
 
-## Fresnel
+possiblement passer un tableau de nombre aléatoire à chaque tableau
 
-donnes code
+--> besoin de normaliser la contribution par 1/0.5 (proba) pour prendre en
+compte le fait que on regarde pas toutes les contrib
 
-## Refract Nothing
-reflection total
+--> spp = 4
 
---> perte de perf
+
+
+---> image bruitée (calcul aléatoire)
+
+(changer le threshold de probabilité)
+
+bla bla * fR / pdf
+u < threshold -> reflection
+u > threshlod -> refraction
+pdf reflection -> 1/ threshold
+pdf refraction = 1 - 1 / threshold
+pdf reflection = fR
+pdfRefraction = 1 - fR
