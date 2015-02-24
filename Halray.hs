@@ -37,7 +37,7 @@ makeDefaultScene = [
     -- Mirror left Sphere
     Object (Sphere 16.5 $ Vector 27 16.5 47) (Mirror $ Vector 1 1 1),
     -- Opaque Right Sphere
-    Object (Sphere 16.5 $ Vector 73 16.5 78) (Diffuse $ Vector 1 1 1)
+    Object (Sphere 16.5 $ Vector 73 16.5 78) (Glass (Vector 1 1 1) 1.5)
   ]
 
 makeDefaultLight :: Light

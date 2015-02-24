@@ -33,7 +33,7 @@ data Light = Light { getLightPosition :: Point, getLightColor :: Color }
 
 -- | Intersection epsilon to avoid self shadowing
 epsilon :: Float
-epsilon = 0.001
+epsilon = 0.01
 
 -- Operations
 primitiveNormal :: Primitive    -- ^ The surface under study
