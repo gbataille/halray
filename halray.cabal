@@ -18,6 +18,8 @@ Library
   hs-source-dirs:     src
   default-language:   Haskell2010
   build-depends:      base >=4.7
+                      , random
+                      , MonadRandom
   ghc-options:        -Wall -O3
   exposed-modules:    GB2.Geometry
                       , GB2.Color
@@ -32,6 +34,8 @@ Executable halray
   -- other-modules:
   build-depends:      base >=4.7
                       , process
+                      , random
+                      , MonadRandom
                       , halray
   ghc-options:        -Wall -O3
 

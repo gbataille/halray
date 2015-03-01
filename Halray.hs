@@ -9,6 +9,8 @@ import GB2.RayTrace
 import System.Process
 import System.IO (openFile, IOMode(..))
 import System.Exit (ExitCode(..))
+import System.Random (mkStdGen)
+import Control.Monad.Random (evalRand)
 
 -- Scene
 -- Vec (50, 70, 81.6) // LIGHT.
@@ -51,7 +53,7 @@ main = do
     width = read (head args) :: Int
     height = read (head $ tail args) :: Int
     spp = read (head . tail $ tail args) :: Int
-    res = render width height spp makeDefaultScene makeDefaultLight
+    res = evalRand (render width height spp makeDefaultScene makeDefaultLight) (mkStdGen 42)
     ppmFilename = "test.ppm"
     jgpFilename = "test.jpg"
 

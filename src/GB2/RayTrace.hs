@@ -6,6 +6,10 @@ import GB2.Color
 import GB2.Material
 import GB2.Tonemap
 
+import System.Random
+import Control.Monad.Random
+import Control.Monad (liftM)
+
 -- | Returns the energy transmitted by a given light at an intersection point. No more than 10 rebounds
 directLighting :: Scene
                -> It
@@ -100,13 +104,16 @@ radianceRay scene light depth ray = case intersectScene scene ray of
     (directLighting scene intersect depth light) + (indirectLighting scene intersect depth light)
   Nothing -> color0
 
-radianceXY :: Scene          -- ^ Scene to render
+radianceXY :: RandomGen g
+           => Scene          -- ^ Scene to render
            -> Light          -- ^ Light
            -> Int            -- ^ number of samples
            -> (Float, Float) -- ^ (x, y)
-           -> Color
+           -> Rand g Color
 radianceXY scene light spp coord =
+ return (
   (vmul2 (1.0 / (fromIntegral spp))) $ foldl (+) color0 [ radianceRay scene light 0 (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
+  )
 
 -- Camera bullshit, we will need to improve this
 near :: Float
@@ -156,14 +163,15 @@ coordListPlane w h = do
   return (xImgPlane, yImpPlane)
 
 -- | Render an image of size Width x Height, with Sample super sample, with a scene description and a light
-render :: Int       -- ^ width
+render :: RandomGen g
+       => Int       -- ^ width
        -> Int       -- ^ height
        -> Int       -- ^ spp
        -> Scene     -- ^ Scene to render
        -> Light     -- ^ Light in the scene
-       -> [Color]
+       -> Rand g [Color]
 render width height spp scene light =
-    (fmap
-      (gamma22 . (radianceXY scene light spp))
-      (coordListPlane width height)
-    )
+ liftM (fmap gamma22) (mapM
+  (radianceXY scene light spp)
+  (coordListPlane width height)
+ )
