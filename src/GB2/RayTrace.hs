@@ -17,12 +17,12 @@ directLighting :: Scene
                -> It
                -> Int          -- ^ depth (i.e. number of indirect rebounds)
                -> Light
-               -> Rand g Color
-directLighting _ _ 10 _ = return color0
+               -> Color
+directLighting _ _ 10 _ = color0
 directLighting scene it _ light
   | vectorsOnSameSideOfTheSurface && not (hasOcclusion scene lightRay d) =
-    return (((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo))))
-  | otherwise = return color0
+    ((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo)))
+  | otherwise = color0
     where
       lightP = getLightPosition light
       lightDir = vectorFromPToP lightP intersectP
@@ -83,9 +83,11 @@ indirectLighting scene it depth light =
          -- We add an epsilon to move the point "away" from the sphere (floating point issues)
          reflectPoint = itPoint + (epsilon `vmul2` reflectedDir)
          rayFromMirror = Ray reflectPoint reflectedDir
-         reflectedEnergy = (radianceRay scene light (depth + 1) rayFromMirror)
+         reflectedEnergy = radianceRay scene light (depth + 1) rayFromMirror
 
-      Mirror _ -> (liftM2 (*)) (return (materialAlbedo mat)) (radianceRay scene light (depth + 1) rayFromMirror)
+      Mirror _ -> do
+       rad <- radianceRay scene light (depth + 1) rayFromMirror
+       return ((materialAlbedo mat) * rad)
         where
          obj = (getItObject it)
          mat = (getObjectMaterial obj)
@@ -107,7 +109,7 @@ radianceRay :: RandomGen g
             -> Rand g Color
 radianceRay scene light depth ray = case intersectScene scene ray of
   Just (_, intersect) ->
-    (liftM2 (+)) (directLighting scene intersect depth light) (indirectLighting scene intersect depth light)
+    (liftM2 (+)) (return (directLighting scene intersect depth light)) (indirectLighting scene intersect depth light)
   Nothing -> return color0
 
 radianceXY :: RandomGen g
