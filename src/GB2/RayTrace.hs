@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module GB2.RayTrace where
 
 import GB2.Primitive
@@ -40,7 +42,8 @@ directLighting scene it _ light
       vectorsOnSameSideOfTheSurface = sameSide incomingRay wo normalAtIntersect
 
 -- | indirectLighting calculation : no more than 10 rebounds
-indirectLighting :: Scene
+indirectLighting :: RandomGen g
+                 => Scene
                  -> It
                  -> Int         -- ^ depth (i.e. number of indirect rebounds)
                  -> Light
@@ -50,22 +53,21 @@ indirectLighting scene it depth light =
  case (getObjectMaterial (getItObject it)) of
       Diffuse _ -> return color0
 
-      Glass _ ior ->
-        (liftM2 (*)) (return (materialAlbedo mat))
-        (
-         (liftM2 (+))
-          ((liftM2 vmul2) (return fresnel) reflectedEnergy)
-          ((liftM2 vmul2) (return (1 - fresnel)) (
-          case refractedRayDir of
-             Nothing -> return color0
-             Just direction ->
-               (radianceRay scene light (depth + 1) refractedRay)
-                 where
-                  refractPoint = itPoint + (epsilon `vmul2` direction)
-                  refractedRay = Ray refractPoint direction
-          )
-         )
-        )
+      Glass _ ior -> do
+       (r :: Float) <- getRandomR (0.0, 1.0)
+       (liftM2 vmul2) (return 2) $
+        (liftM2 (*)) (return (materialAlbedo mat)) $
+        if r < 0.5
+           then ((liftM2 vmul2) (return fresnel) reflectedEnergy)
+           else (liftM2 vmul2) (return (1 - fresnel)) (
+            case refractedRayDir of
+               Nothing -> return color0
+               Just direction ->
+                 (radianceRay scene light (depth + 1) refractedRay)
+                   where
+                    refractPoint = itPoint + (epsilon `vmul2` direction)
+                    refractedRay = Ray refractPoint direction
+           )
 
         where
          obj = (getItObject it)
@@ -97,7 +99,8 @@ indirectLighting scene it depth light =
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
-radianceRay :: Scene
+radianceRay :: RandomGen g
+            => Scene
             -> Light
             -> Int      -- ^ depth (i.e. number of indirect rebounds)
             -> Ray
