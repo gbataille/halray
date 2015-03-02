@@ -8,19 +8,19 @@ import GB2.Tonemap
 
 import System.Random
 import Control.Monad.Random
-import Control.Monad (liftM)
+import Control.Monad (liftM, liftM2)
 
 -- | Returns the energy transmitted by a given light at an intersection point. No more than 10 rebounds
 directLighting :: Scene
                -> It
                -> Int          -- ^ depth (i.e. number of indirect rebounds)
                -> Light
-               -> Color
-directLighting _ _ 10 _ = color0
+               -> Rand g Color
+directLighting _ _ 10 _ = return color0
 directLighting scene it _ light
   | vectorsOnSameSideOfTheSurface && not (hasOcclusion scene lightRay d) =
-    ((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo)))
-  | otherwise = color0
+    return (((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo))))
+  | otherwise = return color0
     where
       lightP = getLightPosition light
       lightDir = vectorFromPToP lightP intersectP
@@ -44,23 +44,26 @@ indirectLighting :: Scene
                  -> It
                  -> Int         -- ^ depth (i.e. number of indirect rebounds)
                  -> Light
-                 -> Color
-indirectLighting _ _ 10 _ = color0
+                 -> Rand g Color
+indirectLighting _ _ 10 _ = return color0
 indirectLighting scene it depth light =
  case (getObjectMaterial (getItObject it)) of
-      Diffuse _ -> color0
+      Diffuse _ -> return color0
 
       Glass _ ior ->
-        (materialAlbedo mat) *
+        (liftM2 (*)) (return (materialAlbedo mat))
         (
-         (fresnel `vmul2` reflectedEnergy)
-         + ((1 - fresnel) `vmul2` case refractedRayDir of
-             Nothing -> color0
+         (liftM2 (+))
+          ((liftM2 vmul2) (return fresnel) reflectedEnergy)
+          ((liftM2 vmul2) (return (1 - fresnel)) (
+          case refractedRayDir of
+             Nothing -> return color0
              Just direction ->
                (radianceRay scene light (depth + 1) refractedRay)
                  where
                   refractPoint = itPoint + (epsilon `vmul2` direction)
                   refractedRay = Ray refractPoint direction
+          )
          )
         )
 
@@ -80,7 +83,7 @@ indirectLighting scene it depth light =
          rayFromMirror = Ray reflectPoint reflectedDir
          reflectedEnergy = (radianceRay scene light (depth + 1) rayFromMirror)
 
-      Mirror _ -> (materialAlbedo mat) * (radianceRay scene light (depth + 1) rayFromMirror)
+      Mirror _ -> (liftM2 (*)) (return (materialAlbedo mat)) (radianceRay scene light (depth + 1) rayFromMirror)
         where
          obj = (getItObject it)
          mat = (getObjectMaterial obj)
@@ -98,11 +101,11 @@ radianceRay :: Scene
             -> Light
             -> Int      -- ^ depth (i.e. number of indirect rebounds)
             -> Ray
-            -> Color
+            -> Rand g Color
 radianceRay scene light depth ray = case intersectScene scene ray of
   Just (_, intersect) ->
-    (directLighting scene intersect depth light) + (indirectLighting scene intersect depth light)
-  Nothing -> color0
+    (liftM2 (+)) (directLighting scene intersect depth light) (indirectLighting scene intersect depth light)
+  Nothing -> return color0
 
 radianceXY :: RandomGen g
            => Scene          -- ^ Scene to render
@@ -111,9 +114,8 @@ radianceXY :: RandomGen g
            -> (Float, Float) -- ^ (x, y)
            -> Rand g Color
 radianceXY scene light spp coord =
- return (
-  (vmul2 (1.0 / (fromIntegral spp))) $ foldl (+) color0 [ radianceRay scene light 0 (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
-  )
+  (liftM2 vmul2) (return (1.0 / (fromIntegral spp))) $
+    foldl (liftM2 (+)) (return color0) [ radianceRay scene light 0 (getCameraRay sample coord) | sample <- [0..(spp-1)] ]
 
 -- Camera bullshit, we will need to improve this
 near :: Float
@@ -171,7 +173,8 @@ render :: RandomGen g
        -> Light     -- ^ Light in the scene
        -> Rand g [Color]
 render width height spp scene light =
- liftM (fmap gamma22) (mapM
+ liftM (fmap gamma22) 
+ (mapM
   (radianceXY scene light spp)
   (coordListPlane width height)
  )
