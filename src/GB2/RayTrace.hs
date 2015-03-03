@@ -106,8 +106,10 @@ radianceRay :: RandomGen g
             -> Ray
             -> Rand g Color
 radianceRay scene light depth ray = case intersectScene scene ray of
-  Just (_, intersect) ->
-    (liftM2 (+)) (return (directLighting scene intersect depth light)) (indirectLighting scene intersect depth light)
+  Just (_, intersect) -> do
+   indirectRad <- indirectLighting scene intersect depth light
+   let directRad = directLighting scene intersect depth light
+   return (directRad + indirectRad)
   Nothing -> return color0
 
 radianceXY :: RandomGen g
