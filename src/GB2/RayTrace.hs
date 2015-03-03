@@ -55,19 +55,17 @@ indirectLighting scene it depth light =
 
       Glass _ ior -> do
        (r :: Float) <- getRandomR (0.0, 1.0)
-       (liftM2 vmul2) (return 2) $
-        (liftM2 (*)) (return (materialAlbedo mat)) $
-        if r < 0.5
-           then ((liftM2 vmul2) (return fresnel) reflectedEnergy)
-           else (liftM2 vmul2) (return (1 - fresnel)) (
-            case refractedRayDir of
-               Nothing -> return color0
-               Just direction ->
-                 (radianceRay scene light (depth + 1) refractedRay)
-                   where
-                    refractPoint = itPoint + (epsilon `vmul2` direction)
-                    refractedRay = Ray refractPoint direction
-           )
+       rad <- case r < fresnel of
+                   True -> reflectedEnergy
+                   False -> case refractedRayDir of
+                                 Nothing -> return color0
+                                 Just direction ->
+                                   (radianceRay scene light (depth + 1) refractedRay)
+                                     where
+                                      refractPoint = itPoint + (epsilon `vmul2` direction)
+                                      refractedRay = Ray refractPoint direction
+
+       return (rad * (materialAlbedo mat))
 
         where
          obj = (getItObject it)
