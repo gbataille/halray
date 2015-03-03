@@ -64,6 +64,10 @@ indirectLighting scene it depth light =
                                       refractPoint = itPoint + (epsilon `vmul2` direction)
                                       refractedRay = Ray refractPoint direction
 
+       -- Here we have a sampling event of pdf = (fresnel) or (1 -
+       -- fresnel) if we sample reflection or refraction
+       -- Scattering equation also contains this term, so f / pdf = 1
+       -- and hence we discard them of the computation for numerical stability.
        return (rad * (materialAlbedo mat))
 
         where
