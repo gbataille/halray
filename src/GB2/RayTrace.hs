@@ -67,25 +67,17 @@ indirectLighting scene it depth light =
        return (rad * (materialAlbedo mat))
 
         where
-         obj = (getItObject it)
-         mat = (getObjectMaterial obj)
-         itNormal = (getItNormal it)
-         itRayDirToOrig = (getItDirToRayOrig it)
-         itPoint = (getItPoint it)
          fresnel = fresnelR itNormal itRayDirToOrig ior
          -- Refraction
          refractedRayDir = refract itNormal itRayDirToOrig ior
          -- Reflection
-         reflectedDir = reflect itNormal itRayDirToOrig
-         -- We add an epsilon to move the point "away" from the sphere (floating point issues)
-         reflectPoint = itPoint + (epsilon `vmul2` reflectedDir)
-         rayFromMirror = Ray reflectPoint reflectedDir
          reflectedEnergy = radianceRay scene light (depth + 1) rayFromMirror
 
       Mirror _ -> do
        rad <- radianceRay scene light (depth + 1) rayFromMirror
        return ((materialAlbedo mat) * rad)
-        where
+
+      where
          obj = (getItObject it)
          mat = (getObjectMaterial obj)
          itPoint = (getItPoint it)
