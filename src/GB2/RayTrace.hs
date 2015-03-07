@@ -49,6 +49,19 @@ directLighting scene it light
 
       vectorsOnSameSideOfTheSurface = sameSide incomingRay wo normalAtIntersect
 
+condIndirectLighting :: RandomGen g
+                 => Scene
+                 -> It
+                 -> Light
+                 -> Rand g Color
+condIndirectLighting scene it light = do
+ go <- goDeeper
+ case go of
+     False -> return color0
+     True -> do
+      inderectRadiance <- indirectLighting scene it light
+      return $ inderectRadiance `vmul` (1.0 / depthProba)
+
 -- | indirectLighting calculation : no more than 10 rebounds
 indirectLighting :: RandomGen g
                  => Scene
@@ -56,66 +69,63 @@ indirectLighting :: RandomGen g
                  -> Light
                  -> Rand g Color
 indirectLighting scene it light = do
- go <- goDeeper
- case go of
-     False -> return color0
-     True -> case (getObjectMaterial (getItObject it)) of
-               -- Diffuse _ -> return $ Vector 255 255 255
-               Diffuse _ -> do
-                r1 <- getRandomR (0.0, 1.0)
-                r2 <- getRandomR (0.0, 1.0)
-                let x = 2 * cos(2 * pi * r1) * sqrt (r2 * (1 - r2))
-                    y = 2 * sin(2 * pi * r1) * sqrt (r2 * (1 - r2))
-                    z = (1 - 2 * r2)
-                    randomDir = Vector x y z
-                    rayDir = normalize $ case sameSide itRayDirToOrig randomDir itNormal of
-                                             True -> randomDir
-                                             False -> (- randomDir)
-                    randomRay = Ray (itPoint + (epsilon `vmul2` rayDir)) rayDir
-                rad <- (radianceRay scene light randomRay)
-                return $ (materialAlbedo mat) * rad `vmul` (1.0 / pdf) `vmul` (abs (dot itNormal rayDir))
-                  where
-                   -- pdf of choosing a point uniformely on the hemisphere
-                   pdf = 1.0 / (2.0 * pi)
+     case (getObjectMaterial (getItObject it)) of
+         -- Diffuse _ -> return $ Vector 255 255 255
+         Diffuse _ -> do
+          r1 <- getRandomR (0.0, 1.0)
+          r2 <- getRandomR (0.0, 1.0)
+          let x = 2 * cos(2 * pi * r1) * sqrt (r2 * (1 - r2))
+              y = 2 * sin(2 * pi * r1) * sqrt (r2 * (1 - r2))
+              z = (1 - 2 * r2)
+              randomDir = Vector x y z
+              rayDir = normalize $ case sameSide itRayDirToOrig randomDir itNormal of
+                                       True -> randomDir
+                                       False -> (- randomDir)
+              randomRay = Ray (itPoint + (epsilon `vmul2` rayDir)) rayDir
+          rad <- (radianceRay scene light randomRay)
+          return $ (materialAlbedo mat) * rad `vmul` (1.0 / pdf) `vmul` (abs (dot itNormal rayDir))
+            where
+             -- pdf of choosing a point uniformely on the hemisphere
+             pdf = 1.0 / (2.0 * pi)
 
-               Glass _ ior -> do
-                (r :: Float) <- getRandomR (0.0, 1.0)
-                rad <- case refractedRayDir of
-                     Nothing -> reflectedEnergy
-                     Just direction -> case r < fresnel of
-                                            True -> reflectedEnergy
-                                            False -> (radianceRay scene light refractedRay)
-                                              where
-                                               refractPoint = itPoint + (epsilon `vmul2` direction)
-                                               refractedRay = Ray refractPoint direction
+         Glass _ ior -> do
+          (r :: Float) <- getRandomR (0.0, 1.0)
+          rad <- case refractedRayDir of
+               Nothing -> reflectedEnergy
+               Just direction -> case r < fresnel of
+                                      True -> reflectedEnergy
+                                      False -> (radianceRay scene light refractedRay)
+                                        where
+                                         refractPoint = itPoint + (epsilon `vmul2` direction)
+                                         refractedRay = Ray refractPoint direction
 
-                -- Here we have a sampling event of pdf = (fresnel) or (1 -
-                -- fresnel) if we sample reflection or refraction
-                -- Scattering equation also contains this term, so f / pdf = 1
-                -- and hence we discard them of the computation for numerical stability.
-                return (rad * (materialAlbedo mat))
+          -- Here we have a sampling event of pdf = (fresnel) or (1 -
+          -- fresnel) if we sample reflection or refraction
+          -- Scattering equation also contains this term, so f / pdf = 1
+          -- and hence we discard them of the computation for numerical stability.
+          return (rad * (materialAlbedo mat))
 
-                 where
-                  fresnel = fresnelR itNormal itRayDirToOrig ior
-                  -- Refraction
-                  refractedRayDir = refract itNormal itRayDirToOrig ior
-                  -- Reflection
-                  reflectedEnergy = radianceRay scene light rayFromMirror
+           where
+            fresnel = fresnelR itNormal itRayDirToOrig ior
+            -- Refraction
+            refractedRayDir = refract itNormal itRayDirToOrig ior
+            -- Reflection
+            reflectedEnergy = radianceRay scene light rayFromMirror
 
-               Mirror _ -> do
-                rad <- radianceRay scene light rayFromMirror
-                return ((materialAlbedo mat) * rad)
+         Mirror _ -> do
+          rad <- radianceRay scene light rayFromMirror
+          return ((materialAlbedo mat) * rad)
 
-               where
-                  obj = (getItObject it)
-                  mat = (getObjectMaterial obj)
-                  itPoint@(Vector cx cy cz) = (getItPoint it)
-                  itRayDirToOrig = (getItDirToRayOrig it)
-                  itNormal = (getItNormal it)
-                  reflectedDir = reflect itNormal itRayDirToOrig
-                  -- We add an epsilon to move the point "away" from the sphere (floating point issues)
-                  reflectPoint = itPoint + (epsilon `vmul2` reflectedDir)
-                  rayFromMirror = Ray reflectPoint reflectedDir
+         where
+            obj = (getItObject it)
+            mat = (getObjectMaterial obj)
+            itPoint = (getItPoint it)
+            itRayDirToOrig = (getItDirToRayOrig it)
+            itNormal = (getItNormal it)
+            reflectedDir = reflect itNormal itRayDirToOrig
+            -- We add an epsilon to move the point "away" from the sphere (floating point issues)
+            reflectPoint = itPoint + (epsilon `vmul2` reflectedDir)
+            rayFromMirror = Ray reflectPoint reflectedDir
 
 -- The raytrace function
 -- Display the color of the sphere hit by the ray
@@ -126,7 +136,7 @@ radianceRay :: RandomGen g
             -> Rand g Color
 radianceRay scene light ray = case intersectScene scene ray of
   Just (_, intersect) -> do
-   indirectRad <- indirectLighting scene intersect light
+   indirectRad <- condIndirectLighting scene intersect light
    let directRad = directLighting scene intersect light
    return (directRad + indirectRad)
   Nothing -> return color0
