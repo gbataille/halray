@@ -17,7 +17,7 @@ materialAlbedo (Glass color _) = color
 bsdf :: Material -> Color
 bsdf (Diffuse color) = color `vmul` (1/pi)
 bsdf (Mirror _) = color0
-bsdf (Glass color _) = 0.1 `vmul2` color
+bsdf (Glass color _) = color0
 
 -- Later, all the different material while inherite from Material and
 -- implements different sampling/evaluating methods using something

@@ -4,6 +4,7 @@ module GB2.Color
     Image,
     color0,
     readColor,
+    clampToInt255,
     image2ppm -- dump and image to disk
 )
 where

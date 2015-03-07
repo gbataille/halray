@@ -12,13 +12,15 @@ import System.Random
 import Control.Monad.Random
 import Control.Monad (liftM, liftM2)
 
+import Debug.Trace
+
 -- | Returns the energy transmitted by a given light at an intersection point. No more than 10 rebounds
 directLighting :: Scene
                -> It
                -> Int          -- ^ depth (i.e. number of indirect rebounds)
                -> Light
                -> Color
-directLighting _ _ 10 _ = color0
+directLighting _ _ 5 _ = color0
 directLighting scene it _ light
   | vectorsOnSameSideOfTheSurface && not (hasOcclusion scene lightRay d) =
     ((bsdf material) * (getLightColor light) `vmul` (1.0 / d_square )`vmul` (abs (dot normalAtIntersect wo)))
@@ -48,10 +50,26 @@ indirectLighting :: RandomGen g
                  -> Int         -- ^ depth (i.e. number of indirect rebounds)
                  -> Light
                  -> Rand g Color
-indirectLighting _ _ 10 _ = return color0
+indirectLighting _ _ 5 _ = return color0
 indirectLighting scene it depth light =
  case (getObjectMaterial (getItObject it)) of
-      Diffuse _ -> return color0
+      -- Diffuse _ -> return $ Vector 255 255 255
+      Diffuse _ -> do
+       r1 <- getRandomR (0.0, 1.0)
+       r2 <- getRandomR (0.0, 1.0)
+       let x = 2 * cos(2 * pi * r1) * sqrt (r2 * (1 - r2))
+           y = 2 * sin(2 * pi * r1) * sqrt (r2 * (1 - r2))
+           z = (1 - 2 * r2)
+           randomDir = Vector x y z
+           rayDir = normalize $ case sameSide itRayDirToOrig randomDir itNormal of
+                                    True -> randomDir
+                                    False -> (- randomDir)
+           randomRay = Ray (itPoint + (epsilon `vmul2` rayDir)) rayDir
+       rad <- (radianceRay scene light (depth + 1) randomRay)
+       return $ (materialAlbedo mat) * rad `vmul` (1.0 / pdf) `vmul` (abs (dot itNormal rayDir))
+         where
+          -- pdf of choosing a point uniformely on the hemisphere
+          pdf = 1.0 / (2.0 * pi)
 
       Glass _ ior -> do
        (r :: Float) <- getRandomR (0.0, 1.0)
@@ -84,7 +102,7 @@ indirectLighting scene it depth light =
       where
          obj = (getItObject it)
          mat = (getObjectMaterial obj)
-         itPoint = (getItPoint it)
+         itPoint@(Vector cx cy cz) = (getItPoint it)
          itRayDirToOrig = (getItDirToRayOrig it)
          itNormal = (getItNormal it)
          reflectedDir = reflect itNormal itRayDirToOrig
@@ -173,7 +191,7 @@ render :: RandomGen g
        -> Light     -- ^ Light in the scene
        -> Rand g [Color]
 render width height spp scene light =
- liftM (fmap gamma22) 
+ liftM (fmap gamma22)
  (mapM
   (radianceXY scene light spp)
   (coordListPlane width height)

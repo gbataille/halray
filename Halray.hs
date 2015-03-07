@@ -34,8 +34,8 @@ makeDefaultScene = [
     Object (Triangle (Vector 0 0 0) (Vector 100 0 0) (Vector 100 0 150)) (Diffuse $ Vector 1 1 0),
     Object (Triangle (Vector 0 0 0) (Vector 0 0 150) (Vector 100 0 150)) (Diffuse $ Vector 1 1 0),
     -- Top Ceiling
-    Object (Triangle (Vector 0 90 0) (Vector 100 90 0) (Vector 0 90 150)) (Diffuse $ Vector 0 1 1),
-    Object (Triangle (Vector 100 90 150) (Vector 100 90 0) (Vector 0 90 150)) (Diffuse $ Vector 0 1 1),
+    Object (Triangle (Vector 0 100 0) (Vector 100 100 0) (Vector 0 100 150)) (Diffuse $ Vector 0 1 1),
+    Object (Triangle (Vector 100 100 150) (Vector 100 100 0) (Vector 0 100 150)) (Diffuse $ Vector 0 1 1),
     -- Mirror left Sphere
     Object (Sphere 16.5 $ Vector 27 16.5 47) (Mirror $ Vector 1 1 1),
     -- Opaque Right Sphere
@@ -43,7 +43,7 @@ makeDefaultScene = [
   ]
 
 makeDefaultLight :: Light
-makeDefaultLight = Light (Vector 50 70 81.6) (Vector 15000 15000 15000)
+makeDefaultLight = Light (Vector 50 70 81.6) (Vector 5000 5000 5000)
 
 -- | 'main' runs the main program
 main :: IO ()
